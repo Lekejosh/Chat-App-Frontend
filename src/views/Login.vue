@@ -79,7 +79,6 @@ import { ref, computed } from "vue";
 import { useStore } from "vuex";
 import { useRouter } from "vue-router";
 import { toast } from "vue3-toastify";
-import "vue3-toastify/dist/index.css";
 
 export default {
   /* eslint-disable */
@@ -100,7 +99,7 @@ export default {
           password: password.value,
         });
         toast.success("Welcome!!!");
-        router.push("/");
+        router.push({ name: "VerifyAccount" });
       } catch (err) {
         toast.error(err.message);
       }

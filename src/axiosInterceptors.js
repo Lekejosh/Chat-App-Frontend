@@ -20,7 +20,7 @@ axiosInstance.interceptors.response.use(
     ) {
       originalRequest._retry = true;
       const response = await axios
-        .get("http://localhost:4000/api/v1/api/v1/user/refresh-token", {
+        .get("http://localhost:4000/api/v1/user/refresh-token", {
           withCredentials: true,
         })
         .catch(() => {

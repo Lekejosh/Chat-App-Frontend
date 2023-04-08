@@ -2,6 +2,8 @@ import { createStore } from "vuex";
 
 import axiosInstance from "../axiosInterceptors";
 
+/* eslint-disable */
+// eslint-disable-next-line
 const store = createStore({
   state: {
     user: null,
@@ -83,6 +85,45 @@ const store = createStore({
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
           }
+        )
+        .catch((error) => {
+          throw new Error(error.response.data.message);
+        });
+    },
+    async verifyEmailAndMobile(context, { mailOtp, mobileOtp }) {
+      await axiosInstance
+        .post(
+          "user/verify/otp",
+          { mailOtp, mobileOtp },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        )
+        .catch((error) => {
+          throw new Error(error.response.data.message);
+        });
+    },
+    async mailOtpReq(context) {
+      await axiosInstance
+        .get("user/generate/email/otp", { withCredentials: true })
+        .catch((error) => {
+          throw new Error(error.response.data.message);
+        });
+    },
+    async mobileOtpReq(context) {
+      await axiosInstance
+        .get("user/generate/mobile/otp", { withCredentials: true })
+        .catch((error) => {
+          throw new Error(error.response.data.message);
+        });
+    },
+    async verifyaccount(context, { mailOtp, mobileOtp }) {
+      await axiosInstance
+        .post(
+          "user/verify/otp",
+          { mailOtp, mobileOtp },
+          { withCredentials: true }
         )
         .catch((error) => {
           throw new Error(error.response.data.message);

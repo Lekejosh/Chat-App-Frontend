@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import SignUp from "../views/SignUp.vue";
 import Login from "../views/Login.vue";
+import VerifyAccount from "../views/VerifyAccount.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
 
 const routes = [
@@ -14,6 +15,11 @@ const routes = [
     path: "/register",
     name: "SignUp",
     component: SignUp,
+  },
+  {
+    path: "/verify",
+    name: "VerifyAccount",
+    component: VerifyAccount,
   },
   {
     path: "/forgot",
