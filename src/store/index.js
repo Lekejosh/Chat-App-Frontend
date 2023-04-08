@@ -1,6 +1,9 @@
 import { createStore } from "vuex";
 
+
 import axiosInstance from "../axiosInterceptors";
+
+
 
 /* eslint-disable */
 // eslint-disable-next-line
@@ -69,11 +72,11 @@ const store = createStore({
             axiosInstance.defaults.headers.common[
               "Authorization"
             ] = `Bearer ${res?.data?.accessToken}`;
-            context.commit("setUser", res.user);
+            context.commit("setUser", res.data.user);
           }
         })
         .catch((error) => {
-          throw new Error(error.response.data.message);
+          throw new Error(error.res.data.message);
         });
     },
     async forgotpassword(context, { emailName }) {
@@ -137,11 +140,11 @@ const store = createStore({
   },
 });
 
-// const unsub = onAuthStateChanged(auth, (user) => {
-//   store.commit("setAuthIsReady", true);
-//   store.commit("setUser", user);
-//   unsub();
-// });
+axiosInstance.get("user/me", { withCredentials: true }).then((res) => {
+  console.log("user", res.data.user);
+  store.commit("setAuthIsReady", true);
+  store.commit("setUser", res.data.user);
+});
 
 // export the store
 export default store;

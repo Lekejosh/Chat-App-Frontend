@@ -99,7 +99,13 @@ export default {
           password: password.value,
         });
         toast.success("Welcome!!!");
-        router.push({ name: "VerifyAccount" });
+        const user = store.state.user;
+        if (!user.isVerified) {
+          router.push({ name: "VerifyAccount" });
+        } else {
+          
+          router.push({ name: "SignUp" });
+        }
       } catch (err) {
         toast.error(err.message);
       }
@@ -108,7 +114,12 @@ export default {
       return !emailName.value || !password.value;
     });
 
-    return { handleSubmit, emailName, password, isFormIncomplete };
+    return {
+      handleSubmit,
+      emailName,
+      password,
+      isFormIncomplete,
+    };
   },
 };
 </script>

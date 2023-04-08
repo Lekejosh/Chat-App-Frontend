@@ -98,7 +98,7 @@
             </div>
             <p class="text-muted">
               Have an account?
-              <router-link :to="{name:'Login'}"
+              <router-link :to="{ name: 'Login' }"
                 >Log in&nbsp;<svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="1em"
@@ -166,7 +166,7 @@ export default {
           avatar: avatar.value,
         });
         toast.success("Registered Successfully");
-        router.push("/");
+        router.push({ name: "VerifyAccount" });
       } catch (err) {
         console.log(err);
         toast.error(err.message);
