@@ -1,4 +1,6 @@
 <template>
+  <section class="py-4 py-md-5 mt-5">
+     <div class="container py-md-5">
   <div class="row d-flex align-items-center">
     <div class="col-md-6 text-center">
       <img class="img-fluid w-100" src="assets/img/illustrations/desk.svg" />
@@ -33,6 +35,8 @@
       </form>
     </div>
   </div>
+</div>
+</section>
 </template>
 
 <script>
