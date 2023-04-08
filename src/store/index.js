@@ -50,18 +50,44 @@ const store = createStore({
           throw new Error(error.response.data.message);
         });
     },
-    // async login(context, { email, password }) {
-    //   console.log("Login action");
-
-    //   //async code
-    //   const res = await signInWithEmailAndPassword(auth, email, password);
-
-    //   if (res) {
-    //     context.commit("setUser", res.user);
-    //   } else {
-    //     throw new Error("Could not login");
-    //   }
-    // },
+    async login(context, { emailName, password }) {
+      //async code
+      console.log(emailName, password);
+      await axiosInstance
+        .post(
+          "user/login",
+          { emailName, password },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        )
+        .then((res) => {
+          if (res.data.success === true) {
+            axiosInstance.defaults.headers.common[
+              "Authorization"
+            ] = `Bearer ${res?.data?.accessToken}`;
+            context.commit("setUser", res.user);
+          }
+        })
+        .catch((error) => {
+          throw new Error(error.response.data.message);
+        });
+    },
+    async forgotpassword(context, { emailName }) {
+      await axiosInstance
+        .post(
+          "user/forgot/password",
+          { emailName },
+          {
+            headers: { "Content-Type": "application/json" },
+            withCredentials: true,
+          }
+        )
+        .catch((error) => {
+          throw new Error(error.response.data.message);
+        });
+    },
     // async logout(context) {
     //   console.log("logout action");
     //   await signOut(auth);

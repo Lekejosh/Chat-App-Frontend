@@ -1,24 +1,25 @@
 import { createRouter, createWebHistory } from "vue-router";
 import SignUp from "../views/SignUp.vue";
-// import Signup from "../views/Signup.vue";
-// import Login from "../views/Login.vue";
+import Login from "../views/Login.vue";
+import ForgotPassword from "../views/ForgotPassword.vue";
 
 const routes = [
   {
     path: "/",
+    name: "Login",
+    component: Login,
+  },
+
+  {
+    path: "/register",
     name: "SignUp",
     component: SignUp,
   },
-  //   {
-  //     path: "/signup",
-  //     name: "Signup",
-  //     component: Signup,
-  //   },
-  //   {
-  //     path: "/login",
-  //     name: "Login",
-  //     component: Login,
-  //   },
+  {
+    path: "/forgot",
+    name: "ForgotPassword",
+    component: ForgotPassword,
+  },
 ];
 
 const router = createRouter({

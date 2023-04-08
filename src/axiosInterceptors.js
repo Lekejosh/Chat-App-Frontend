@@ -14,18 +14,19 @@ axiosInstance.interceptors.response.use(
     const originalRequest = error.config;
     // const navigate = error.config.extraData?.navigate;
     if (
-      error.response.status === 401 ||
+      error.response.data.message === "Please Login to access this resource" ||
       (error.response.data.message === "Json Web Token is Expired, Try again" &&
         !originalRequest._retry)
     ) {
       originalRequest._retry = true;
       const response = await axios
-        .get("http://localhost:4000/api/v1/api/v1/user/refresh", {
+        .get("http://localhost:4000/api/v1/api/v1/user/refresh-token", {
           withCredentials: true,
         })
         .catch(() => {
           localStorage.clear();
-          window.location.href = "/login";
+          document.cookie.clear();
+          window.location.href = "/";
           toast.error("Session Terminated");
         });
       originalRequest.headers.Authorization = `Bearer ${response?.data?.accessToken}`;

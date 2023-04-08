@@ -98,7 +98,7 @@
             </div>
             <p class="text-muted">
               Have an account?
-              <router-link to="/login"
+              <router-link :to="{name:'Login'}"
                 >Log in&nbsp;<svg
                   xmlns="http://www.w3.org/2000/svg"
                   width="1em"
@@ -148,7 +148,7 @@ export default {
       avatar.value = event.target.files[0];
     };
 
-    const error = ref(null);
+    // const error = ref(null);
 
     const store = useStore();
 
@@ -193,7 +193,7 @@ export default {
       confirmPassword,
       email,
       password,
-      error,
+      // error,
       onAvatarChange,
       isFormIncomplete,
     };
