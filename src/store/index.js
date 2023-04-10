@@ -73,7 +73,7 @@ const store = createStore({
           }
         })
         .catch((error) => {
-          throw new Error(error.res.data.message);
+          throw new Error(error.response.data.message);
         });
     },
     async forgotpassword(context, { emailName }) {

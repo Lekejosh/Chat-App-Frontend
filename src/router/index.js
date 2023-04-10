@@ -3,6 +3,7 @@ import SignUp from "../views/SignUp.vue";
 import Login from "../views/Login.vue";
 import VerifyAccount from "../views/VerifyAccount.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
+import ResetPassword from "../views/ResetPassword.vue";
 import UserView from "../views/UserView.vue";
 import NotFound from "../views/NotFound.vue";
 // import store from "../store/index.js"; 
@@ -50,6 +51,12 @@ const routes = [
     path: "/forgot",
     name: "ForgotPassword",
     component: ForgotPassword,
+  },
+  {
+    path: "/password/reset/:token",
+    name: "ResetPassword",
+    component: ResetPassword,
+    props: true,
   },
   {
     path: "/user",
