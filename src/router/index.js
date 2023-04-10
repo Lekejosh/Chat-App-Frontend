@@ -4,6 +4,7 @@ import Login from "../views/Login.vue";
 import VerifyAccount from "../views/VerifyAccount.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
 import UserView from "../views/UserView.vue";
+import NotFound from "../views/NotFound.vue";
 // import store from "../store/index.js"; 
 
 
@@ -54,6 +55,11 @@ const routes = [
     path: "/user",
     name: "UserView",
     component: UserView,
+  },
+  {
+    path: "/:catchAll(.*)",
+    name: "NotFound",
+    component: NotFound,
   },
 ];
 

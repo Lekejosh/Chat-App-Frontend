@@ -19,7 +19,11 @@
               />
             </div>
             <div class="mb-3">
-              <p style="cursor: pointer" @click="mailOtpReq">
+              <p
+                style="cursor: pointer"
+                @click="mailOtpReq"
+                :disabled="mailOtpDisabled"
+              >
                 Request Email OTP
               </p>
             </div>
@@ -33,7 +37,11 @@
               />
             </div>
             <div class="mb-3">
-              <p style="cursor: pointer" @click="mobileOtpReq">
+              <p
+                style="cursor: pointer"
+                @click="mobileOtpReq"
+                :disabled="mobileOtpDisabled"
+              >
                 Request Mobile OTP
               </p>
             </div>
@@ -63,26 +71,49 @@ import { toast } from "vue3-toastify";
 
 export default {
   name: "VerifyAccount",
+
   setup() {
     const mailOtp = ref("");
     const mobileOtp = ref("");
     const store = useStore();
     const router = useRouter();
+    let mobileOtpDisabled = false;
+    let mailOtpDisabled = false;
 
     const mobileOtpReq = async () => {
-      try {
-        await store.dispatch("mobileOtpReq");
-        toast.success("Otp Sent to Mobile Number");
-      } catch (err) {
-        toast.error(err.message);
+      if (!mobileOtpDisabled) {
+        try {
+          await store.dispatch("mobileOtpReq");
+          toast.success("Otp Sent to Mobile Number");
+          mobileOtpDisabled = true;
+          setTimeout(() => {
+            mobileOtpDisabled = false;
+          }, 60000);
+        } catch (err) {
+          toast.error(err.message);
+          mobileOtpDisabled = true;
+          setTimeout(() => {
+            mobileOtpDisabled = false;
+          }, 60000);
+        }
       }
     };
     const mailOtpReq = async () => {
-      try {
-        await store.dispatch("mailOtpReq");
-        toast.success("Otp Sent to Mobile Number");
-      } catch (err) {
-        toast.error(err.message);
+      if (!mailOtpDisabled) {
+        try {
+          await store.dispatch("mailOtpReq");
+          toast.success("Otp Sent to Mobile Number");
+          mailOtpDisabled = true;
+          setTimeout(() => {
+            mailOtpDisabled = false;
+          }, 60000);
+        } catch (err) {
+          toast.error(err.message);
+          mailOtpDisabled = true;
+          setTimeout(() => {
+            mailOtpDisabled = false;
+          }, 60000);
+        }
       }
     };
     const handleSubmit = async () => {
@@ -111,5 +142,3 @@ export default {
   },
 };
 </script>
-
-<style></style>

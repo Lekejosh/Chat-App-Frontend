@@ -1,9 +1,6 @@
 import { createStore } from "vuex";
 
-
 import axiosInstance from "../axiosInterceptors";
-
-
 
 /* eslint-disable */
 // eslint-disable-next-line
@@ -131,6 +128,11 @@ const store = createStore({
         .catch((error) => {
           throw new Error(error.response.data.message);
         });
+    },
+    async refreshtoken(context) {
+      await axiosInstance.get("user/refresh-token").catch((error) => {
+        throw new Error(error.response.data.message);
+      });
     },
     // async logout(context) {
     //   console.log("logout action");
