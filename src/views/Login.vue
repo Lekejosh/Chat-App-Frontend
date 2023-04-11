@@ -103,8 +103,7 @@ export default {
         if (!user.isVerified) {
           router.push({ name: "VerifyAccount" });
         } else {
-          
-          router.push({ name: "SignUp" });
+          router.push({ name: "UserView" });
         }
       } catch (err) {
         toast.error(err.message);

@@ -1,4 +1,5 @@
 <template>
+   <div v-if="chats.length">
   <div class="top"></div>
   <div class="box">
     <div class="left">
@@ -6,253 +7,42 @@
         <h2>teamIt</h2>
       </div>
       <div class="search">
+        <div class="ico">
+
+          <ion-icon name="add-outline"></ion-icon>
+        </div>
         <input type="text" class="in" placeholder="search for chats here" />
         <div class="ico">
           <img src="assets/img/search.svg" alt="" class="icon1" />
         </div>
       </div>
-      <ul>
+      <ul v-for="chat in chats" :key="chat._id">
         <li>
           <div class="friend">
             <div class="img_name">
               <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                :src="chat.users[1].avatar.url"
                 alt=""
                 class="ava"
               />
               <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
+                <h3>{{chat.users[1].username}}</h3>
+                <p>{{chat.latestMessage.content}}</p>
               </div>
             </div>
             <div class="time">
-              <p class="p">Today</p>
+              <p class="p">{{chat.updatedAt.toString()}}</p>
             </div>
           </div>
         </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p><span>typing...</span></p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>Wagawn fam?</p>
-              </div>
-            </div>
-            <div class="time">
-              <p class="p">Today</p>
-            </div>
-          </div>
-        </li>
+      
       </ul>
     </div>
     <div class="right">
       <div class="right_top">
         <div class="img_name">
           <img
-            src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+            src=""
             alt=""
             class="ava"
           />
@@ -268,18 +58,7 @@
           <p>Hi! Wagwan</p>
         </div>
         <div class="u"><p>I dey aii</p></div>
-        <div class="me">
-          <p>Hi! Wagwan</p>
-        </div>
-        <div class="u"><p>I dey aii</p></div>
-        <div class="me">
-          <p>Hi! Wagwan</p>
-        </div>
-        <div class="u"><p>I dey aii</p></div>
-        <div class="me">
-          <p>Hi! Wagwan</p>
-        </div>
-        <div class="u"><p>I dey aii</p></div>
+       
       </div>
       <div class="btm">
         <form>
@@ -294,11 +73,35 @@
       </div>
     </div>
   </div>
+  </div>
+  <div v-else>Loading...</div>
 </template>
 
 <script>
+import axiosInstance from "@/axiosInterceptors";
+
 export default {
   name: "UserView",
+  data() {
+    return {
+      // users: null,
+      chats:[]
+    };
+  },
+  mounted() {
+    // axiosInstance
+    //   .get("http://localhost:4000/api/v1/user/me", {
+    //     withCrendentials: true,
+    //   })
+    //   .then((res) => {
+    //     console.log(res.data);
+    //     this.users = res.data;
+    //   });
+      axiosInstance.get("http://localhost:4000/api/v1/chat/fetch").then((res)=>{
+        console.log(res)
+        this.chats = res.data.data
+      })
+  },
 };
 </script>
 
@@ -350,7 +153,6 @@ export default {
   border-bottom: 1px solid #eaeaea;
   justify-content: space-around;
   align-items: center;
- 
 }
 .search {
   width: 280px;
