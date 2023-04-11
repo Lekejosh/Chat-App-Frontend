@@ -1,106 +1,144 @@
 <template>
-   <div v-if="chats.length">
-  <div class="top"></div>
-  <div class="box">
-    <div class="left">
-      <div class="topp">
-        <h2>teamIt</h2>
-      </div>
-      <div class="search">
-        <div class="ico">
-
-          <ion-icon name="add-outline"></ion-icon>
+  <div v-if="chats.length">
+    <div class="top"></div>
+    <div class="box">
+      <div class="left">
+        <div class="topp">
+          <h2>teamIt</h2>
         </div>
-        <input type="text" class="in" placeholder="search for chats here" />
-        <div class="ico">
-          <img src="assets/img/search.svg" alt="" class="icon1" />
+        <div class="search">
+          <div class="ico">
+            <ion-icon name="add-outline"></ion-icon>
+          </div>
+          <input type="text" class="in" placeholder="search for chats here" />
+          <div class="ico">
+            <img src="assets/img/search.svg" alt="" class="icon1" />
+          </div>
         </div>
-      </div>
-      <ul v-for="chat in chats" :key="chat._id">
-        <li>
-          <div class="friend">
-            <div class="img_name">
-              <img
-                :src="chat.users[1].avatar.url"
-                alt=""
-                class="ava"
-              />
-              <div>
-                <h3>{{chat.users[1].username}}</h3>
-                <p>{{chat.latestMessage.content}}</p>
+        <ul>
+          <li
+            v-for="chat in chats"
+            :key="chat._id"
+            @click="fetchMessage(chat._id)"
+          >
+            <div class="friend">
+              <div class="img_name">
+                <img
+                  :src="chat.users[1].avatar.url"
+                  :alt="chat.users[1].username"
+                  class="ava"
+                />
+                <div>
+                  <h3>{{ chat.users[1].username }}</h3>
+                  <p>{{ chat.latestMessage.content }}</p>
+                </div>
+              </div>
+              <div class="time">
+                <p class="p">{{ formatDate(chat.updatedAt) }}</p>
               </div>
             </div>
-            <div class="time">
-              <p class="p">{{chat.updatedAt.toString()}}</p>
+          </li>
+        </ul>
+      </div>
+      <div v-if="messages.length" class="right">
+        <div class="right_top">
+          <div class="img_name">
+            <img src="" alt="" class="ava" />
+            <div>
+              <h3>Leke Leke</h3>
+              <p>active 30 seconds ago...</p>
             </div>
           </div>
-        </li>
-      
-      </ul>
-    </div>
-    <div class="right">
-      <div class="right_top">
-        <div class="img_name">
-          <img
-            src=""
-            alt=""
-            class="ava"
-          />
-          <div>
-            <h3>Leke Leke</h3>
-            <p>active 30 seconds ago...</p>
+          <img src="assets/img/ellipsis.svg" alt="" class="icon2" />
+        </div>
+        <div class="mid">
+          <div
+            v-for="message in messages"
+            :key="message._id"
+            :class="userStored._id === message.sender._id ? 'me' : 'u'"
+          >
+            <p>{{ message.content }}</p>
           </div>
         </div>
-        <img src="assets/img/ellipsis.svg" alt="" class="icon2" />
-      </div>
-      <div class="mid">
-        <div class="me">
-          <p>Hi! Wagwan</p>
+        <div class="btm">
+          <form>
+            <div>
+              <ion-icon name="attach-outline" class="send_svg"></ion-icon>
+            </div>
+            <textarea
+              placeholder="Type your message here"
+              class="in2"
+            ></textarea>
+            <div class="ico3">
+              <ion-icon name="send-outline" class="send_svg"></ion-icon>
+            </div>
+          </form>
         </div>
-        <div class="u"><p>I dey aii</p></div>
-       
       </div>
-      <div class="btm">
-        <form>
-          <div>
-            <ion-icon name="attach-outline" class="send_svg"></ion-icon>
-          </div>
-          <textarea placeholder="Type your message here" class="in2"></textarea>
-          <div class="ico3">
-            <ion-icon name="send-outline" class="send_svg"></ion-icon>
-          </div>
-        </form>
-      </div>
+      <div v-else class="right"> Loasdin</div>
     </div>
-  </div>
   </div>
   <div v-else>Loading...</div>
 </template>
 
 <script>
 import axiosInstance from "@/axiosInterceptors";
-
+import { useStore } from "vuex";
 export default {
   name: "UserView",
   data() {
     return {
       // users: null,
-      chats:[]
+      chats: [],
+      messages: [],
     };
   },
+
+  setup() {
+    const store = useStore();
+    const userStored = store.state.user;
+    const fetchMessage = async (chat) => {
+      axiosInstance
+        .get(`http://localhost:4000/api/v1/message/${chat}`)
+        .then((res) => {
+          this.messages = res.data;
+          console.log(res.data);
+        });
+    };
+    console.log("Userrr", userStored);
+    return { fetchMessage, userStored };
+  },
   mounted() {
-    // axiosInstance
-    //   .get("http://localhost:4000/api/v1/user/me", {
-    //     withCrendentials: true,
-    //   })
-    //   .then((res) => {
-    //     console.log(res.data);
-    //     this.users = res.data;
-    //   });
-      axiosInstance.get("http://localhost:4000/api/v1/chat/fetch").then((res)=>{
-        console.log(res)
-        this.chats = res.data.data
-      })
+  
+    axiosInstance.get("http://localhost:4000/api/v1/chat/fetch").then((res) => {
+      console.log(res);
+      this.chats = res.data.data;
+    });
+  },
+  methods: {
+    formatDate(date) {
+      const now = new Date();
+      const updatedAt = new Date(date);
+
+      if (
+        updatedAt.getDate() === now.getDate() &&
+        updatedAt.getMonth() === now.getMonth() &&
+        updatedAt.getFullYear() === now.getFullYear()
+      ) {
+        // Chat message was updated today
+        const hours = updatedAt.getHours().toString().padStart(2, "0");
+        const minutes = updatedAt.getMinutes().toString().padStart(2, "0");
+        return `${hours}:${minutes}`;
+      } else {
+        // Chat message was updated on a different day
+        const year = updatedAt.getFullYear();
+        const month = (updatedAt.getMonth() + 1).toString().padStart(2, "0");
+        const day = updatedAt.getDate().toString().padStart(2, "0");
+        const hours = updatedAt.getHours().toString().padStart(2, "0");
+        const minutes = updatedAt.getMinutes().toString().padStart(2, "0");
+        return `${year}-${month}-${day} ${hours}:${minutes}`;
+      }
+    },
   },
 };
 </script>
@@ -196,6 +234,10 @@ li {
   justify-content: space-between;
 }
 .friend:hover {
+  background: #eaeaea;
+  cursor: pointer;
+}
+.friend:active {
   background: #eaeaea;
 }
 .img_name {

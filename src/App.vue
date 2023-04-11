@@ -1,7 +1,10 @@
 <template>
-  <NavBar />
-  <router-view />
-  <FooterView />
+  <div>
+    <NavBar v-if="!isUserRoute" />
+    <router-view />
+
+    <FooterView v-if="!isUserRoute" />
+  </div>
 </template>
 
 <script>
@@ -12,6 +15,11 @@ export default {
   components: {
     NavBar,
     FooterView,
+  },
+  computed: {
+    isUserRoute() {
+      return this.$route.path.startsWith("/user");
+    },
   },
 };
 </script>
