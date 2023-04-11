@@ -1,205 +1,511 @@
 <template>
-<section style="background-color: #eee;">
-  <div class="container py-5">
-
-    <div class="row">
-
-      <div class="col-md-6 col-lg-5 col-xl-4 mb-4 mb-md-0">
-
-        <h5 class="font-weight-bold mb-3 text-center text-lg-start">Member</h5>
-
-        <div class="card">
-          <div class="card-body">
-
-            <ul class="list-unstyled mb-0">
-              <li class="p-2 border-bottom" style="background-color: #eee;">
-                <a href="#!" class="d-flex justify-content-between">
-                  <div class="d-flex flex-row">
-                    <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-8.webp" alt="avatar"
-                      class="rounded-circle d-flex align-self-center me-3 shadow-1-strong" width="60">
-                    <div class="pt-1">
-                      <p class="fw-bold mb-0">John Doe</p>
-                      <p class="small text-muted">Hello, Are you there?</p>
-                    </div>
-                  </div>
-                  <div class="pt-1">
-                    <p class="small text-muted mb-1">Just now</p>
-                    <span class="badge bg-danger float-end">1</span>
-                  </div>
-                </a>
-              </li>
-              <li class="p-2 border-bottom">
-                <a href="#!" class="d-flex justify-content-between">
-                  <div class="d-flex flex-row">
-                    <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-1.webp" alt="avatar"
-                      class="rounded-circle d-flex align-self-center me-3 shadow-1-strong" width="60">
-                    <div class="pt-1">
-                      <p class="fw-bold mb-0">Danny Smith</p>
-                      <p class="small text-muted">Lorem ipsum dolor sit.</p>
-                    </div>
-                  </div>
-                  <div class="pt-1">
-                    <p class="small text-muted mb-1">5 mins ago</p>
-                  </div>
-                </a>
-              </li>
-              <li class="p-2 border-bottom">
-                <a href="#!" class="d-flex justify-content-between">
-                  <div class="d-flex flex-row">
-                    <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-2.webp" alt="avatar"
-                      class="rounded-circle d-flex align-self-center me-3 shadow-1-strong" width="60">
-                    <div class="pt-1">
-                      <p class="fw-bold mb-0">Alex Steward</p>
-                      <p class="small text-muted">Lorem ipsum dolor sit.</p>
-                    </div>
-                  </div>
-                  <div class="pt-1">
-                    <p class="small text-muted mb-1">Yesterday</p>
-                  </div>
-                </a>
-              </li>
-              <li class="p-2 border-bottom">
-                <a href="#!" class="d-flex justify-content-between">
-                  <div class="d-flex flex-row">
-                    <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-3.webp" alt="avatar"
-                      class="rounded-circle d-flex align-self-center me-3 shadow-1-strong" width="60">
-                    <div class="pt-1">
-                      <p class="fw-bold mb-0">Ashley Olsen</p>
-                      <p class="small text-muted">Lorem ipsum dolor sit.</p>
-                    </div>
-                  </div>
-                  <div class="pt-1">
-                    <p class="small text-muted mb-1">Yesterday</p>
-                  </div>
-                </a>
-              </li>
-              <li class="p-2 border-bottom">
-                <a href="#!" class="d-flex justify-content-between">
-                  <div class="d-flex flex-row">
-                    <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-4.webp" alt="avatar"
-                      class="rounded-circle d-flex align-self-center me-3 shadow-1-strong" width="60">
-                    <div class="pt-1">
-                      <p class="fw-bold mb-0">Kate Moss</p>
-                      <p class="small text-muted">Lorem ipsum dolor sit.</p>
-                    </div>
-                  </div>
-                  <div class="pt-1">
-                    <p class="small text-muted mb-1">Yesterday</p>
-                  </div>
-                </a>
-              </li>
-              <li class="p-2 border-bottom">
-                <a href="#!" class="d-flex justify-content-between">
-                  <div class="d-flex flex-row">
-                    <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-5.webp" alt="avatar"
-                      class="rounded-circle d-flex align-self-center me-3 shadow-1-strong" width="60">
-                    <div class="pt-1">
-                      <p class="fw-bold mb-0">Lara Croft</p>
-                      <p class="small text-muted">Lorem ipsum dolor sit.</p>
-                    </div>
-                  </div>
-                  <div class="pt-1">
-                    <p class="small text-muted mb-1">Yesterday</p>
-                  </div>
-                </a>
-              </li>
-              <li class="p-2">
-                <a href="#!" class="d-flex justify-content-between">
-                  <div class="d-flex flex-row">
-                    <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
-                      class="rounded-circle d-flex align-self-center me-3 shadow-1-strong" width="60">
-                    <div class="pt-1">
-                      <p class="fw-bold mb-0">Brad Pitt</p>
-                      <p class="small text-muted">Lorem ipsum dolor sit.</p>
-                    </div>
-                  </div>
-                  <div class="pt-1">
-                    <p class="small text-muted mb-1">5 mins ago</p>
-                    <span class="text-muted float-end"><i class="fas fa-check" aria-hidden="true"></i></span>
-                  </div>
-                </a>
-              </li>
-            </ul>
-
+  <div class="top"></div>
+  <div class="box">
+    <div class="left">
+      <div class="topp">
+        <h2>teamIt</h2>
+      </div>
+      <div class="search">
+        <input type="text" class="in" placeholder="search for chats here" />
+        <div class="ico">
+          <img src="assets/img/search.svg" alt="" class="icon1" />
+        </div>
+      </div>
+      <ul>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p><span>typing...</span></p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="friend">
+            <div class="img_name">
+              <img
+                src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+                alt=""
+                class="ava"
+              />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>Wagawn fam?</p>
+              </div>
+            </div>
+            <div class="time">
+              <p class="p">Today</p>
+            </div>
+          </div>
+        </li>
+      </ul>
+    </div>
+    <div class="right">
+      <div class="right_top">
+        <div class="img_name">
+          <img
+            src="https://media.istockphoto.com/photos/headshot-portrait-of-smiling-ethnic-businessman-in-office-picture-id1300512215?b=1&k=20&m=1300512215&s=612x612&w=0&h=pP5ksvhx-gIHFVAyZTn31H_oJuhB0nX4HnLLUN2kVAg="
+            alt=""
+            class="ava"
+          />
+          <div>
+            <h3>Leke Leke</h3>
+            <p>active 30 seconds ago...</p>
           </div>
         </div>
-
+        <img src="assets/img/ellipsis.svg" alt="" class="icon2" />
       </div>
-
-      <div class="col-md-6 col-lg-7 col-xl-8">
-
-        <ul class="list-unstyled">
-          <li class="d-flex justify-content-between mb-4">
-            <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
-              class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between p-3">
-                <p class="fw-bold mb-0">Brad Pitt</p>
-                <p class="text-muted small mb-0"><i class="far fa-clock"></i> 12 mins ago</p>
-              </div>
-              <div class="card-body">
-                <p class="mb-0">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                  labore et dolore magna aliqua.
-                </p>
-              </div>
-            </div>
-          </li>
-          <li class="d-flex justify-content-between mb-4">
-            <div class="card w-100">
-              <div class="card-header d-flex justify-content-between p-3">
-                <p class="fw-bold mb-0">Lara Croft</p>
-                <p class="text-muted small mb-0"><i class="far fa-clock"></i> 13 mins ago</p>
-              </div>
-              <div class="card-body">
-                <p class="mb-0">
-                  Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque
-                  laudantium.
-                </p>
-              </div>
-            </div>
-            <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-5.webp" alt="avatar"
-              class="rounded-circle d-flex align-self-start ms-3 shadow-1-strong" width="60">
-          </li>
-          <li class="d-flex justify-content-between mb-4">
-            <img src="https://mdbcdn.b-cdn.net/img/Photos/Avatars/avatar-6.webp" alt="avatar"
-              class="rounded-circle d-flex align-self-start me-3 shadow-1-strong" width="60">
-            <div class="card">
-              <div class="card-header d-flex justify-content-between p-3">
-                <p class="fw-bold mb-0">Brad Pitt</p>
-                <p class="text-muted small mb-0"><i class="far fa-clock"></i> 10 mins ago</p>
-              </div>
-              <div class="card-body">
-                <p class="mb-0">
-                  Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut
-                  labore et dolore magna aliqua.
-                </p>
-              </div>
-            </div>
-          </li>
-          <li class="bg-white mb-3">
-            <div class="form-outline">
-              <textarea class="form-control" id="textAreaExample2" rows="4"></textarea>
-              <label class="form-label" for="textAreaExample2">Message</label>
-            </div>
-          </li>
-          <button type="button" class="btn btn-info btn-rounded float-end">Send</button>
-        </ul>
-
+      <div class="mid">
+        <div class="me">
+          <p>Hi! Wagwan</p>
+        </div>
+        <div class="u"><p>I dey aii</p></div>
+        <div class="me">
+          <p>Hi! Wagwan</p>
+        </div>
+        <div class="u"><p>I dey aii</p></div>
+        <div class="me">
+          <p>Hi! Wagwan</p>
+        </div>
+        <div class="u"><p>I dey aii</p></div>
+        <div class="me">
+          <p>Hi! Wagwan</p>
+        </div>
+        <div class="u"><p>I dey aii</p></div>
       </div>
-
+      <div class="btm">
+        <form>
+          <div>
+            <ion-icon name="attach-outline" class="send_svg"></ion-icon>
+          </div>
+          <textarea placeholder="Type your message here" class="in2"></textarea>
+          <div class="ico3">
+            <ion-icon name="send-outline" class="send_svg"></ion-icon>
+          </div>
+        </form>
+      </div>
     </div>
-
   </div>
-</section>
 </template>
 
 <script>
 export default {
-name:"UserView"
-}
+  name: "UserView",
+};
 </script>
 
-<style>
+<style scoped>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+:root {
+  --grad: linear-gradient(to bottom right, #8bc34a #ff9800);
+  --clip: polygon(52% 65%, 100% 38%, 100% 0, 0 0, 0% 38%);
+  --shadow: rgba(50, 50, 93, 0.25) 0px 30px 60px -12px,
+    rgba(0, 0, 0, 0.3) 0px 18px 36px -18px;
+  --c: #eaeaea;
+  --g: #74d800;
+}
+.top {
+  height: 100vh;
+  background-image: var(--grad) !important;
+  width: 100%;
+  clip-path: var(--clip) !important;
+}
+.box {
+  width: 1000px;
+  height: 600px;
+  border-radius: 5px;
+  box-shadow: var(--shadow);
+  position: absolute;
+  top: 50%;
+  background: white;
+  left: 50%;
+  display: flex;
+  transform: translate(-50%, -50%);
+}
+.left {
+  width: 280px;
+  height: 600px;
+  border-right: 1px solid #eaeaea;
+}
+.right {
+  height: 600px;
+  width: calc(1000px - 280px);
+}
+.topp {
+  width: 280px;
+  height: 50px;
+  display: flex;
+  border-bottom: 1px solid #eaeaea;
+  justify-content: space-around;
+  align-items: center;
+ 
+}
+.search {
+  width: 280px;
+  height: 50px;
+  display: flex;
+  border-bottom: 1px solid #eaeaea;
+  justify-content: space-around;
+  align-items: center;
+}
+.ico {
+  padding: 5px;
+  border-radius: 5px;
+}
+.icon1 {
+  width: 23px;
+  height: 23px;
+}
+.in {
+  border: none;
+  outline: none;
+  background: #eaeaea;
+  padding: 10px 15px;
+  border-radius: 5px;
+  width: 250px;
+}
+.ava {
+  height: 40px;
+  width: 40px;
+  margin-left: 7px;
+  border-radius: 50px;
+}
+li {
+  list-style: none;
+}
+.friend {
+  display: flex;
+  align-items: center;
+  transition: 0.5s ease;
+  height: 60px;
+  border-bottom: 1px solid #eaeaea;
+  justify-content: space-between;
+}
+.friend:hover {
+  background: #eaeaea;
+}
+.img_name {
+  display: flex;
+  align-items: center;
+}
+h3 {
+  font-size: 14px;
+  margin-left: 7px;
+}
+p {
+  margin-left: 7px;
+  color: grey;
+  font-size: 12px;
+}
+.p {
+  margin-right: 10px;
+}
+ul {
+  height: calc(600px - 100px);
+  overflow-y: auto;
+}
+span {
+  color: green;
+}
+.right_top {
+  height: 50px;
+  border-bottom: 1px solid #eaeaea;
+  width: calc(1000px - 280px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.icon2 {
+  margin-right: 20px;
+  height: 23px;
+  width: 23px;
+}
+.mid {
+  overflow-y: auto;
+  width: 100%;
+  border-bottom: 1px solid #eaeaea;
+  height: calc(600px - 100px);
+}
+.btm {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px;
+  width: 100%;
+}
+form {
+  width: 90%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 40px;
+  border-radius: 5px;
+  border: 1px solid lightgray;
+}
+.ico3,
+form div {
+  background: #eaeaea;
+  padding: 10px;
+  border-radius: 5px;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.ico3,
+form div:hover {
+  background: green;
+}
+.send_svg {
+  height: 23px;
+  width: 23px;
+}
 
+.in2 {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 550px;
+}
+.me {
+  margin: 10px;
+  background: rgb(66, 194, 66);
+  padding: 10px;
+  display: table;
+  clear: both;
+  max-width: 80%;
+  border-radius: 5px;
+  float: right;
+}
+.u {
+  margin: 10px;
+  background: grey;
+  padding: 10px;
+  display: table;
+  clear: both;
+  max-width: 80%;
+  border-radius: 5px;
+  float: left;
+}
+.me p {
+  color: white;
+  font-size: 15px;
+}
+.u p {
+  color: white;
+  font-size: 15px;
+}
 </style>
