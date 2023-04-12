@@ -40,42 +40,43 @@
           </li>
         </ul>
       </div>
-      <div v-if="messages.length" class="right">
-        <div class="right_top">
-          <div class="img_name">
-            <img src="" alt="" class="ava" />
-            <div>
-              <h3>Leke Leke</h3>
-              <p>active 30 seconds ago...</p>
+      <template v-if="messages && messages.length > 0">
+        <div class="right">
+          <div class="right_top">
+            <div class="img_name">
+              <img src="" alt="" class="ava" />
+              <div>
+                <h3>Leke Leke</h3>
+                <p>active 30 seconds ago...</p>
+              </div>
+            </div>
+            <img src="assets/img/ellipsis.svg" alt="" class="icon2" />
+          </div>
+          <div class="mid">
+            <div
+              v-for="message in messages"
+              :key="message._id"
+              :class="userStored._id === message.sender._id ? 'me' : 'u'"
+            >
+              <p>{{ message.content }}</p>
             </div>
           </div>
-          <img src="assets/img/ellipsis.svg" alt="" class="icon2" />
-        </div>
-        <div class="mid">
-          <div
-            v-for="message in messages"
-            :key="message._id"
-            :class="userStored._id === message.sender._id ? 'me' : 'u'"
-          >
-            <p>{{ message.content }}</p>
+          <div class="btm">
+            <form>
+              <div>
+                <ion-icon name="attach-outline" class="send_svg"></ion-icon>
+              </div>
+              <textarea
+                placeholder="Type your message here"
+                class="in2"
+              ></textarea>
+              <div class="ico3">
+                <ion-icon name="send-outline" class="send_svg"></ion-icon>
+              </div>
+            </form>
           </div>
         </div>
-        <div class="btm">
-          <form>
-            <div>
-              <ion-icon name="attach-outline" class="send_svg"></ion-icon>
-            </div>
-            <textarea
-              placeholder="Type your message here"
-              class="in2"
-            ></textarea>
-            <div class="ico3">
-              <ion-icon name="send-outline" class="send_svg"></ion-icon>
-            </div>
-          </form>
-        </div>
-      </div>
-      <div v-else class="right"> Loasdin</div>
+      </template>
     </div>
   </div>
   <div v-else>Loading...</div>
@@ -88,7 +89,6 @@ export default {
   name: "UserView",
   data() {
     return {
-      // users: null,
       chats: [],
       messages: [],
     };
@@ -97,23 +97,28 @@ export default {
   setup() {
     const store = useStore();
     const userStored = store.state.user;
-    const fetchMessage = async (chat) => {
+    const fetchMessage = async (chatId) => {
       axiosInstance
-        .get(`http://localhost:4000/api/v1/message/${chat}`)
+        .get(process.env.VUE_APP_BASE_URL + `message/${chatId}`, {
+          withCredentials: true,
+        })
         .then((res) => {
           this.messages = res.data;
-          console.log(res.data);
         });
     };
+
     console.log("Userrr", userStored);
     return { fetchMessage, userStored };
   },
   mounted() {
-  
-    axiosInstance.get("http://localhost:4000/api/v1/chat/fetch").then((res) => {
-      console.log(res);
-      this.chats = res.data.data;
-    });
+    axiosInstance
+      .get(process.env.VUE_APP_BASE_URL + "chat/fetch", {
+        withCredentials: true,
+      })
+      .then((res) => {
+        console.log(res);
+        this.chats = res.data.data;
+      });
   },
   methods: {
     formatDate(date) {

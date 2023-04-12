@@ -1,6 +1,6 @@
 import { createStore } from "vuex";
-
-import axiosInstance from "../axiosInterceptors";
+import axios from "axios";
+// import axiosInstance from "../axiosInterceptors";
 
 /* eslint-disable */
 // eslint-disable-next-line
@@ -24,27 +24,18 @@ const store = createStore({
       { firstName, lastName, username, email, mobileNumber, password, avatar }
     ) {
       //async code
-      await axiosInstance
-        .post(
-          "user/register",
-          {
-            firstName,
-            lastName,
-            username,
-            email,
-            mobileNumber,
-            password,
-            avatar,
-          },
-          {
-            withCredentials: true,
-          }
-        )
+      await axios
+        .post(process.env.VUE_APP_BASE_URL + "user/register", {
+          firstName,
+          lastName,
+          username,
+          email,
+          mobileNumber,
+          password,
+          avatar,
+        })
         .then((res) => {
           if (res.data.success === true) {
-            axiosInstance.defaults.headers.common[
-              "Authorization"
-            ] = `Bearer ${res?.data?.accessToken}`;
             context.commit("setUser", res.user);
           }
         })
@@ -55,10 +46,11 @@ const store = createStore({
     async login(context, { emailName, password }) {
       //async code
       console.log(emailName, password);
-      await axiosInstance
+      await axios
         .post(
-          "user/login",
+          process.env.VUE_APP_BASE_URL + "user/login",
           { emailName, password },
+
           {
             headers: { "Content-Type": "application/json" },
             withCredentials: true,
@@ -66,9 +58,7 @@ const store = createStore({
         )
         .then((res) => {
           if (res.data.success === true) {
-            axiosInstance.defaults.headers.common[
-              "Authorization"
-            ] = `Bearer ${res?.data?.accessToken}`;
+            console.log("logged in user", res.data);
             context.commit("setUser", res.data.user);
           }
         })
@@ -77,9 +67,9 @@ const store = createStore({
         });
     },
     async forgotpassword(context, { emailName }) {
-      await axiosInstance
+      await axios
         .post(
-          "user/forgot/password",
+          process.env.VUE_APP_BASE_URL + "user/forgot/password",
           { emailName },
           {
             headers: { "Content-Type": "application/json" },
@@ -91,9 +81,9 @@ const store = createStore({
         });
     },
     async verifyEmailAndMobile(context, { mailOtp, mobileOtp }) {
-      await axiosInstance
+      await axios
         .post(
-          "user/verify/otp",
+          process.env.VUE_APP_BASE_URL + "user/verify/otp",
           { mailOtp, mobileOtp },
           {
             headers: { "Content-Type": "application/json" },
@@ -105,24 +95,31 @@ const store = createStore({
         });
     },
     async mailOtpReq(context) {
-      await axiosInstance
-        .get("user/generate/email/otp", { withCredentials: true })
+      await axios
+        .get(process.env.VUE_APP_BASE_URL + "user/generate/email/otp", {
+          withCredentials: true,
+        })
         .catch((error) => {
           throw new Error(error.response.data.message);
         });
     },
     async mobileOtpReq(context) {
-      await axiosInstance
-        .get("user/generate/mobile/otp", { withCredentials: true })
+      await axios
+        .get(process.env.VUE_APP_BASE_URL + "user/generate/mobile/otp", {
+          withCredentials: true,
+        })
         .catch((error) => {
           throw new Error(error.response.data.message);
         });
     },
     async verifyaccount(context, { mailOtp, mobileOtp }) {
-      await axiosInstance
+      await axios
         .post(
-          "user/verify/otp",
-          { mailOtp, mobileOtp },
+          process.env.VUE_APP_BASE_URL + "user/verify/otp",
+          {
+            mailOtp,
+            mobileOtp,
+          },
           { withCredentials: true }
         )
         .catch((error) => {
@@ -130,23 +127,28 @@ const store = createStore({
         });
     },
     async refreshtoken(context) {
-      await axiosInstance.get("user/refresh-token").catch((error) => {
-        throw new Error(error.response.data.message);
-      });
+      await axios
+        .get(process.env.VUE_APP_BASE_URL + "user/refresh-token", {
+          withCredentials: true,
+        })
+        .catch((error) => {
+          throw new Error(error.response.data.message);
+        });
     },
-    // async logout(context) {
-    //   console.log("logout action");
-    //   await signOut(auth);
-    //   context.commit("setUser", null);
-    // },
+    async logout(context) {
+      await signOut(process.env.VUE_APP_BASE_URL + "user/logout");
+      context.commit("setUser", null);
+    },
   },
 });
 
-axiosInstance.get("user/me", { withCredentials: true }).then((res) => {
-  console.log("user", res.data.user);
-  store.commit("setAuthIsReady", true);
-  store.commit("setUser", res.data.user);
-});
+axios
+  .get(process.env.VUE_APP_BASE_URL + "user/me", { withCredentials: true })
+  .then((res) => {
+    console.log("user", res.data.user);
+    store.commit("setAuthIsReady", true);
+    store.commit("setUser", res.data.user);
+  });
 
 // export the store
 export default store;
