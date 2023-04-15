@@ -6,51 +6,41 @@ import ForgotPassword from "../views/ForgotPassword.vue";
 import ResetPassword from "../views/ResetPassword.vue";
 import UserView from "../views/UserView.vue";
 import NotFound from "../views/NotFound.vue";
-// import store from "../store/index.js"; 
-
+import AuthMixin from "@/mixin/AuthMaxin";
 
 const routes = [
   {
     path: "/",
     name: "Login",
     component: Login,
-    // beforeEnter: (to, from, next) => {
-    //   if (store.state.user) {
-    //     next({ name: "UserView" });
-    //   } else {
-    //     next();
-    //   }
-    // },
+    meta: {
+      isAuth: false,
+    },
   },
 
   {
     path: "/register",
     name: "SignUp",
     component: SignUp,
-    // beforeEnter: (to, from, next) => {
-    //   if (store.state.user) {
-    //     next({ name: "UserView" });
-    //   } else {
-    //     next();
-    //   }
-    // },
+    meta: {
+      isAuth: false,
+    },
   },
   {
     path: "/verify",
     name: "VerifyAccount",
     component: VerifyAccount,
-    // beforeEnter: (to, from, next) => {
-    //   if (store.state.user) {
-    //     next();
-    //   } else {
-    //     next({ name: "Login" });
-    //   }
-    // },
+    meta: {
+      isAuth: true,
+    },
   },
   {
     path: "/forgot",
     name: "ForgotPassword",
     component: ForgotPassword,
+    meta: {
+      isAuth: false,
+    },
   },
   {
     path: "/password/reset/:token",
@@ -62,6 +52,9 @@ const routes = [
     path: "/user",
     name: "UserView",
     component: UserView,
+    meta: {
+      isAuth: true,
+    },
   },
   {
     path: "/:catchAll(.*)",
@@ -69,10 +62,21 @@ const routes = [
     component: NotFound,
   },
 ];
-
 const router = createRouter({
   history: createWebHistory(process.env.BASE_URL),
   routes,
+  mixins: [AuthMixin],
 });
 
+// router.isReady().then(() => {
+//   router.beforeEach((to, from, next) => {
+//     if (to.meta.isAuth) {
+//       let user = router.app.$store.getters.user;
+//       console.log("This is User from index", user);
+//     }
+//     next();
+//   });
+// });
+
 export default router;
+
