@@ -145,7 +145,7 @@ const store = createStore({
 axios
   .get(process.env.VUE_APP_BASE_URL + "user/me", { withCredentials: true })
   .then((res) => {
-    console.log("user", res.data.user);
+   localStorage.setItem("userId", res.data.user._id);
     store.commit("setAuthIsReady", true);
     store.commit("setUser", res.data.user);
   });

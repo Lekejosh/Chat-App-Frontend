@@ -40,43 +40,60 @@
           </li>
         </ul>
       </div>
-      <template v-if="messages && messages.length > 0">
-        <div class="right">
-          <div class="right_top">
-            <div class="img_name">
-              <img src="" alt="" class="ava" />
-              <div>
-                <h3>Leke Leke</h3>
-                <p>active 30 seconds ago...</p>
-              </div>
-            </div>
-            <img src="assets/img/ellipsis.svg" alt="" class="icon2" />
-          </div>
-          <div class="mid">
-            <div
-              v-for="message in messages"
-              :key="message._id"
-              :class="userStored._id === message.sender._id ? 'me' : 'u'"
-            >
-              <p>{{ message.content }}</p>
+
+      <div v-if="messages.length" class="right">
+        <div class="right_top">
+          <div v-if="chatUsers.chatName === 'sender'" class="img_name">
+            <img
+              :src="filterUserName[0].avatar.url"
+              :alt="filterUserName[0].username"
+              class="ava"
+            />
+
+            <div>
+              <h3>{{ filterUserName[0].username }}</h3>
+              <!-- <p>active 30 seconds ago...</p> -->
             </div>
           </div>
-          <div class="btm">
-            <form>
-              <div>
-                <ion-icon name="attach-outline" class="send_svg"></ion-icon>
-              </div>
-              <textarea
-                placeholder="Type your message here"
-                class="in2"
-              ></textarea>
-              <div class="ico3">
-                <ion-icon name="send-outline" class="send_svg"></ion-icon>
-              </div>
-            </form>
+          <div v-else class="img_name">
+            <img src="" alt="" class="ava" />
+
+            <div>
+              <h3>{{ filterUserName[0].username }}</h3>
+              <!-- <p>active 30 seconds ago...</p> -->
+            </div>
+          </div>
+          <img src="assets/img/ellipsis.svg" alt="" class="icon2" />
+        </div>
+        <div class="mid">
+          <div
+            v-for="message in messages"
+            :key="message._id"
+            :class="userId === message.sender._id ? 'me' : 'u'"
+          >
+            <p>{{ message.content }}</p>
           </div>
         </div>
-      </template>
+        <div class="btm">
+          <form @submit.prevent="sendMessage(chatId)">
+            <div>
+              <ion-icon name="attach-outline" class="send_svg"></ion-icon>
+            </div>
+            <textarea
+              placeholder="Type your message here"
+              class="in2"
+              name="content"
+              v-model="content"
+            ></textarea>
+            <div class="ico3">
+              <button :disabled="isFormIncomplete" type="submit">
+                <ion-icon name="send-outline" class="send_svg"></ion-icon>
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+      <div v-else>Loading...</div>
     </div>
   </div>
   <div v-else>Loading...</div>
@@ -84,31 +101,65 @@
 
 <script>
 import axiosInstance from "@/axiosInterceptors";
-import { useStore } from "vuex";
+import { ref, computed } from "vue";
+
 export default {
   name: "UserView",
   data() {
     return {
       chats: [],
-      messages: [],
+      chatId: localStorage.getItem("chatId"),
     };
   },
 
   setup() {
-    const store = useStore();
-    const userStored = store.state.user;
+    const messages = ref([]);
+    const chatUsers = ref([]);
+    const content = ref("");
+    const filterUserName = ref("");
+    const userId = localStorage.getItem("userId");
     const fetchMessage = async (chatId) => {
+      localStorage.setItem("chatId", chatId);
       axiosInstance
-        .get(process.env.VUE_APP_BASE_URL + `message/${chatId}`, {
+        .get(`message/${chatId}`, {
           withCredentials: true,
         })
         .then((res) => {
-          this.messages = res.data;
+          console.log("This are the messages: ", res.data);
+          messages.value = res.data.messages;
+          chatUsers.value = res.data.chat;
+          const username = res.data.chat.users;
+          filterUserName.value = username.filter((user) => user._id !== userId);
         });
     };
 
-    console.log("Userrr", userStored);
-    return { fetchMessage, userStored };
+    const sendMessage = async (chatId) => {
+      console.log("Chat tttt", chatId);
+      console.log(content.value);
+      try {
+        const response = await axiosInstance.post(
+          "message",
+          { content: content.value, chatId: chatId },
+          { withCredentials: true }
+        );
+        console.log("Message sent:", response.data);
+      } catch (error) {
+        console.error("Error sending message:", error);
+      }
+    };
+    const isFormIncomplete = computed(() => {
+      return !content.value;
+    });
+
+    return {
+      fetchMessage,
+      userId,
+      messages,
+      chatUsers,
+      filterUserName,
+      sendMessage,
+      isFormIncomplete,
+    };
   },
   mounted() {
     axiosInstance
@@ -136,12 +187,12 @@ export default {
         return `${hours}:${minutes}`;
       } else {
         // Chat message was updated on a different day
-        const year = updatedAt.getFullYear();
+        // const year = updatedAt.getFullYear();
         const month = (updatedAt.getMonth() + 1).toString().padStart(2, "0");
         const day = updatedAt.getDate().toString().padStart(2, "0");
         const hours = updatedAt.getHours().toString().padStart(2, "0");
         const minutes = updatedAt.getMinutes().toString().padStart(2, "0");
-        return `${year}-${month}-${day} ${hours}:${minutes}`;
+        return `${month}/${day} ${hours}:${minutes}`;
       }
     },
   },

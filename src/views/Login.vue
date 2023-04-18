@@ -100,6 +100,7 @@ export default {
         });
         toast.success("Welcome!!!");
         const user = store.state.user;
+        console.log("Loggged in: ",user)
         if (!user.isVerified) {
           router.push({ name: "VerifyAccount" });
         } else {
