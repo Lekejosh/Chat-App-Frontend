@@ -102,6 +102,7 @@
 <script>
 import axiosInstance from "@/axiosInterceptors";
 import { ref, computed } from "vue";
+import io from "socket.io-client";
 
 export default {
   name: "UserView",
@@ -162,6 +163,8 @@ export default {
     };
   },
   mounted() {
+    const socket = io(process.env.VUE_APP_URL);
+    socket.on("connection");
     axiosInstance
       .get(process.env.VUE_APP_BASE_URL + "chat/fetch", {
         withCredentials: true,
