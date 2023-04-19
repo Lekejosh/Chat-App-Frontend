@@ -16,22 +16,26 @@
           </div>
         </div>
         <ul>
-          <li
-            v-for="chat in chats"
-            :key="chat._id"
-            @click="fetchMessage(chat._id)"
-          >
+          <li v-for="chat in chats" :key="chat._id" @click="fetchMessage(chat._id)">
             <div class="friend">
               <div class="img_name">
-                <img
-                  :src="chat.users[1].avatar.url"
-                  :alt="chat.users[1].username"
-                  class="ava"
-                />
-                <div>
-                  <h3>{{ chat.users[1].username }}</h3>
-                  <p>{{ chat.latestMessage.content }}</p>
-                </div>
+                <template v-if="chat.chatName === 'sender'">
+
+                  <img :src="chat.users[0].avatar.url" :alt="chat.users[0].username" class="ava" />
+                  <div>
+                    <h3>{{ chat.users[0].username }}</h3>
+                    <p>{{ chat.latestMessage.content }}</p>
+                  </div>
+
+                </template>
+                <template v-else>
+                  <img :src="chat.users[0].avatar.url" :alt="chat.users[0].username" class="ava" />
+                  <div>
+                    <h3>{{ chat.chatName }}</h3>
+                    <p v-if="chat.latestMessage?.content">{{ chat.latestMessage.content }}</p>
+                    <p v-else></p>
+                  </div>
+                </template>
               </div>
               <div class="time">
                 <p class="p">{{ formatDate(chat.updatedAt) }}</p>
@@ -44,11 +48,7 @@
       <div v-if="messages.length" class="right">
         <div class="right_top">
           <div v-if="chatUsers.chatName === 'sender'" class="img_name">
-            <img
-              :src="filterUserName[0].avatar.url"
-              :alt="filterUserName[0].username"
-              class="ava"
-            />
+            <img :src="filterUserName[0].avatar.url" :alt="filterUserName[0].username" class="ava" />
 
             <div>
               <h3>{{ filterUserName[0].username }}</h3>
@@ -66,29 +66,21 @@
           <img src="assets/img/ellipsis.svg" alt="" class="icon2" />
         </div>
         <div class="mid">
-          <div
-            v-for="message in messages"
-            :key="message._id"
-            :class="userId === message.sender._id ? 'me' : 'u'"
-          >
+          <div v-for="message in messages" :key="message._id" :class="userId === message.sender._id ? 'me' : 'u'">
             <p>{{ message.content }}</p>
           </div>
         </div>
         <div class="btm">
-          <form @submit.prevent="sendMessage(chatId)">
+          <form @submit.prevent>
             <div>
               <ion-icon name="attach-outline" class="send_svg"></ion-icon>
             </div>
-            <textarea
-              placeholder="Type your message here"
-              class="in2"
-              name="content"
-              v-model="content"
-            ></textarea>
-            <div class="ico3">
-              <button :disabled="isFormIncomplete" type="submit">
-                <ion-icon name="send-outline" class="send_svg"></ion-icon>
-              </button>
+            <textarea placeholder="Type your message here" class="in2" name="content" v-model="content"></textarea>
+
+            <div class="ico3" @click='sendMessage(chatId)' :disabled="isFormIncomplete">
+
+              <ion-icon name="send-outline"  type="submit" class="send_svg"></ion-icon>
+
             </div>
           </form>
         </div>
@@ -106,10 +98,13 @@ import io from "socket.io-client";
 
 export default {
   name: "UserView",
+
   data() {
     return {
       chats: [],
+      displayUser: [],
       chatId: localStorage.getItem("chatId"),
+      id: localStorage.getItem("userId"),
     };
   },
 
@@ -135,15 +130,15 @@ export default {
     };
 
     const sendMessage = async (chatId) => {
-      console.log("Chat tttt", chatId);
-      console.log(content.value);
       try {
+
         const response = await axiosInstance.post(
           "message",
           { content: content.value, chatId: chatId },
           { withCredentials: true }
         );
         console.log("Message sent:", response.data);
+
       } catch (error) {
         console.error("Error sending message:", error);
       }
@@ -156,6 +151,7 @@ export default {
       fetchMessage,
       userId,
       messages,
+      content,
       chatUsers,
       filterUserName,
       sendMessage,
@@ -170,8 +166,17 @@ export default {
         withCredentials: true,
       })
       .then((res) => {
-        console.log(res);
-        this.chats = res.data.data;
+
+        // this.chats = res.data.data;
+        const chatData = res.data.data;
+        const idToRemove = this.id
+        console.log(idToRemove)
+        const result = chatData.map(results => {
+          const withoutUser = results.users.filter(user => user._id !== idToRemove)
+          return { ...results, users: withoutUser }
+        });
+        console.log(result)
+        this.chats = result
       });
   },
   methods: {
@@ -179,23 +184,26 @@ export default {
       const now = new Date();
       const updatedAt = new Date(date);
 
-      if (
-        updatedAt.getDate() === now.getDate() &&
-        updatedAt.getMonth() === now.getMonth() &&
-        updatedAt.getFullYear() === now.getFullYear()
-      ) {
+      if (updatedAt.toDateString() === now.toDateString()) {
         // Chat message was updated today
-        const hours = updatedAt.getHours().toString().padStart(2, "0");
-        const minutes = updatedAt.getMinutes().toString().padStart(2, "0");
-        return `${hours}:${minutes}`;
+        return `${updatedAt.getHours().toString().padStart(2, "0")}:${updatedAt
+          .getMinutes()
+          .toString()
+          .padStart(2, "0")}`;
       } else {
         // Chat message was updated on a different day
-        // const year = updatedAt.getFullYear();
-        const month = (updatedAt.getMonth() + 1).toString().padStart(2, "0");
-        const day = updatedAt.getDate().toString().padStart(2, "0");
-        const hours = updatedAt.getHours().toString().padStart(2, "0");
-        const minutes = updatedAt.getMinutes().toString().padStart(2, "0");
-        return `${month}/${day} ${hours}:${minutes}`;
+        return `${(updatedAt.getMonth() + 1)
+          .toString()
+          .padStart(2, "0")}/${updatedAt
+            .getDate()
+            .toString()
+            .padStart(2, "0")} ${updatedAt
+              .getHours()
+              .toString()
+              .padStart(2, "0")}:${updatedAt
+                .getMinutes()
+                .toString()
+                .padStart(2, "0")}`;
       }
     },
   },
@@ -208,6 +216,7 @@ export default {
   padding: 0;
   box-sizing: border-box;
 }
+
 :root {
   --grad: linear-gradient(to bottom right, #8bc34a #ff9800);
   --clip: polygon(52% 65%, 100% 38%, 100% 0, 0 0, 0% 38%);
@@ -216,12 +225,14 @@ export default {
   --c: #eaeaea;
   --g: #74d800;
 }
+
 .top {
   height: 100vh;
   background-image: var(--grad) !important;
   width: 100%;
   clip-path: var(--clip) !important;
 }
+
 .box {
   width: 1000px;
   height: 600px;
@@ -234,15 +245,18 @@ export default {
   display: flex;
   transform: translate(-50%, -50%);
 }
+
 .left {
   width: 280px;
   height: 600px;
   border-right: 1px solid #eaeaea;
 }
+
 .right {
   height: 600px;
   width: calc(1000px - 280px);
 }
+
 .topp {
   width: 280px;
   height: 50px;
@@ -251,6 +265,7 @@ export default {
   justify-content: space-around;
   align-items: center;
 }
+
 .search {
   width: 280px;
   height: 50px;
@@ -259,14 +274,17 @@ export default {
   justify-content: space-around;
   align-items: center;
 }
+
 .ico {
   padding: 5px;
   border-radius: 5px;
 }
+
 .icon1 {
   width: 23px;
   height: 23px;
 }
+
 .in {
   border: none;
   outline: none;
@@ -275,15 +293,18 @@ export default {
   border-radius: 5px;
   width: 250px;
 }
+
 .ava {
   height: 40px;
   width: 40px;
   margin-left: 7px;
   border-radius: 50px;
 }
+
 li {
   list-style: none;
 }
+
 .friend {
   display: flex;
   align-items: center;
@@ -292,36 +313,45 @@ li {
   border-bottom: 1px solid #eaeaea;
   justify-content: space-between;
 }
+
 .friend:hover {
   background: #eaeaea;
   cursor: pointer;
 }
+
 .friend:active {
   background: #eaeaea;
 }
+
 .img_name {
   display: flex;
   align-items: center;
 }
+
 h3 {
   font-size: 14px;
   margin-left: 7px;
 }
+
 p {
   margin-left: 7px;
   color: grey;
   font-size: 12px;
 }
+
 .p {
   margin-right: 10px;
 }
+
 ul {
   height: calc(600px - 100px);
   overflow-y: auto;
 }
+
 span {
   color: green;
 }
+
 .right_top {
   height: 50px;
   border-bottom: 1px solid #eaeaea;
@@ -330,17 +360,20 @@ span {
   align-items: center;
   justify-content: space-between;
 }
+
 .icon2 {
   margin-right: 20px;
   height: 23px;
   width: 23px;
 }
+
 .mid {
   overflow-y: auto;
   width: 100%;
   border-bottom: 1px solid #eaeaea;
   height: calc(600px - 100px);
 }
+
 .btm {
   display: flex;
   justify-content: center;
@@ -348,6 +381,7 @@ span {
   height: 50px;
   width: 100%;
 }
+
 form {
   width: 90%;
   display: flex;
@@ -357,6 +391,7 @@ form {
   border-radius: 5px;
   border: 1px solid lightgray;
 }
+
 .ico3,
 form div {
   background: #eaeaea;
@@ -368,10 +403,12 @@ form div {
   justify-content: center;
   cursor: pointer;
 }
+
 .ico3,
 form div:hover {
   background: green;
 }
+
 .send_svg {
   height: 23px;
   width: 23px;
@@ -383,6 +420,7 @@ form div:hover {
   background: transparent;
   width: 550px;
 }
+
 .me {
   margin: 10px;
   background: rgb(66, 194, 66);
@@ -393,6 +431,7 @@ form div:hover {
   border-radius: 5px;
   float: right;
 }
+
 .u {
   margin: 10px;
   background: grey;
@@ -403,10 +442,12 @@ form div:hover {
   border-radius: 5px;
   float: left;
 }
+
 .me p {
   color: white;
   font-size: 15px;
 }
+
 .u p {
   color: white;
   font-size: 15px;
