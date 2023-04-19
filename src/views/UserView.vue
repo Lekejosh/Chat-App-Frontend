@@ -29,7 +29,7 @@
 
                 </template>
                 <template v-else>
-                  <img :src="chat.users[0].avatar.url" :alt="chat.users[0].username" class="ava" />
+                  <img :src="chat.groupAvatar.url" :alt="chat.chatName" class="ava" />
                   <div>
                     <h3>{{ chat.chatName }}</h3>
                     <p v-if="chat.latestMessage?.content">{{ chat.latestMessage.content }}</p>
