@@ -36,6 +36,7 @@ const store = createStore({
         })
         .then((res) => {
           if (res.data.success === true) {
+            localStorage.setItem("userId", res.data.user._id);
             context.commit("setUser", res.user);
           }
         })
@@ -58,6 +59,7 @@ const store = createStore({
         )
         .then((res) => {
           if (res.data.success === true) {
+            localStorage.setItem("userId", res.data.user._id);
             console.log("logged in user", res.data);
             context.commit("setUser", res.data.user);
           }

@@ -44,42 +44,48 @@
           </li>
         </ul>
       </div>
-
-      <div v-if="messages.length" class="right">
+      <div v-if="messages.length || chatUsers.length" class="right">
         <div class="right_top">
           <div v-if="chatUsers.chatName === 'sender'" class="img_name">
             <img :src="filterUserName[0].avatar.url" :alt="filterUserName[0].username" class="ava" />
-
             <div>
               <h3>{{ filterUserName[0].username }}</h3>
               <!-- <p>active 30 seconds ago...</p> -->
             </div>
           </div>
           <div v-else class="img_name">
-            <img src="" alt="" class="ava" />
-
+            <img :src="chatUsers.groupAvatar.url" :alt="chatUsers.chatName" class="ava" />
             <div>
-              <h3>{{ filterUserName[0].username }}</h3>
+              <h3>{{ chatUsers.chatName }}</h3>
               <!-- <p>active 30 seconds ago...</p> -->
             </div>
           </div>
           <img src="assets/img/ellipsis.svg" alt="" class="icon2" />
         </div>
         <div class="mid">
-          <div v-for="message in messages" :key="message._id" :class="userId === message.sender._id ? 'me' : 'u'">
-            <p>{{ message.content }}</p>
-          </div>
+          <template v-if="messages.length">
+            <div v-for="message in messages" :key="message._id" :class="userId === message.sender._id ? 'me' : 'u'">
+              <p>{{ message.content }}</p>
+            </div>
+          </template>
+          <template v-else>
+            <div>
+              <p></p>
+            </div>
+          </template>
         </div>
+
+
         <div class="btm">
           <form @submit.prevent>
             <div>
               <ion-icon name="attach-outline" class="send_svg"></ion-icon>
             </div>
-            <textarea placeholder="Type your message here" class="in2" name="content" v-model="content"></textarea>
+            <textarea @keydown.enter.prevent="sendMessage(chatId)" placeholder="Type your message here" class="in2"
+              name="content" v-model="content"></textarea>
 
-            <div class="ico3" @click='sendMessage(chatId)' :disabled="isFormIncomplete">
-
-              <ion-icon name="send-outline"  type="submit" class="send_svg"></ion-icon>
+            <div class="ico3" @click="sendMessage(chatId)" :disabled="isFormIncomplete">
+              <ion-icon name="send-outline" type="submit" class="send_svg"></ion-icon>
 
             </div>
           </form>
@@ -112,7 +118,7 @@ export default {
     const messages = ref([]);
     const chatUsers = ref([]);
     const content = ref("");
-    const filterUserName = ref("");
+    const filterUserName = ref([]);
     const userId = localStorage.getItem("userId");
     const fetchMessage = async (chatId) => {
       localStorage.setItem("chatId", chatId);
@@ -137,6 +143,7 @@ export default {
           { content: content.value, chatId: chatId },
           { withCredentials: true }
         );
+        content.value = ''
         console.log("Message sent:", response.data);
 
       } catch (error) {
