@@ -8,6 +8,7 @@ const store = createStore({
   state: {
     user: null,
     authIsReady: false,
+    chatId: null,
   },
   mutations: {
     setUser(state, payload) {
@@ -17,8 +18,15 @@ const store = createStore({
     setAuthIsReady(state, payload) {
       state.authIsReady = payload;
     },
+    setChatId(state, chatId) {
+      state.chatId = chatId;
+      console.log("chat ID: ", state.chatId);
+    },
   },
   actions: {
+    async setChatId(context, { chatId }) {
+      await context.commit("setChatId", chatId);
+    },
     async signup(
       context,
       { firstName, lastName, username, email, mobileNumber, password, avatar }
@@ -147,7 +155,7 @@ const store = createStore({
 axios
   .get(process.env.VUE_APP_BASE_URL + "user/me", { withCredentials: true })
   .then((res) => {
-   localStorage.setItem("userId", res.data.user._id);
+    localStorage.setItem("userId", res.data.user._id);
     store.commit("setAuthIsReady", true);
     store.commit("setUser", res.data.user);
   });

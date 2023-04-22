@@ -19,12 +19,12 @@
           <li v-for="chat in chats" :key="chat._id" @click="fetchMessage(chat._id)">
             <div class="friend">
               <div class="img_name">
-                <template v-if="chat.chatName === 'sender'">
+                <template v-if="!chat.isGroupChat">
 
                   <img :src="chat.users[0].avatar.url" :alt="chat.users[0].username" class="ava" />
                   <div>
                     <h3>{{ chat.users[0].username }}</h3>
-                    <p>{{ chat.latestMessage.content }}</p>
+                    <p>{{ chat.latestMessage.content.message }}</p>
                   </div>
 
                 </template>
@@ -32,7 +32,7 @@
                   <img :src="chat.groupAvatar.url" :alt="chat.chatName" class="ava" />
                   <div>
                     <h3>{{ chat.chatName }}</h3>
-                    <p v-if="chat.latestMessage?.content">{{ chat.latestMessage.content }}</p>
+                    <p v-if="chat.latestMessage?.content.message">{{ chat.latestMessage.content.message }}</p>
                     <p v-else></p>
                   </div>
                 </template>
@@ -44,9 +44,9 @@
           </li>
         </ul>
       </div>
-      <div v-if="messages.length || chatUsers.length" class="right">
+      <div v-if="messages.length" class="right">
         <div class="right_top">
-          <div v-if="chatUsers.chatName === 'sender'" class="img_name">
+          <div v-if="!chatUsers.isGroupChat" class="img_name">
             <img :src="filterUserName[0].avatar.url" :alt="filterUserName[0].username" class="ava" />
             <div>
               <h3>{{ filterUserName[0].username }}</h3>
@@ -63,16 +63,10 @@
           <img src="assets/img/ellipsis.svg" alt="" class="icon2" />
         </div>
         <div class="mid">
-          <template v-if="messages.length">
-            <div v-for="message in messages" :key="message._id" :class="userId === message.sender._id ? 'me' : 'u'">
-              <p>{{ message.content }}</p>
-            </div>
-          </template>
-          <template v-else>
-            <div>
-              <p></p>
-            </div>
-          </template>
+
+          <div v-for="messagess in messages" :key="messagess._id" :class="userId === messagess.sender._id ? 'me' : 'u'">
+            <p v-if="messagess.content.type === 'Message'">{{ messagess.content.message }}</p>
+          </div>
         </div>
 
 
@@ -81,10 +75,10 @@
             <div>
               <ion-icon name="attach-outline" class="send_svg"></ion-icon>
             </div>
-            <textarea @keydown.enter.prevent="sendMessage(chatId)" placeholder="Type your message here" class="in2"
+            <textarea @keydown.enter.prevent="sendMessage(chatUsers._id)" placeholder="Type your message here" class="in2"
               name="content" v-model="content"></textarea>
 
-            <div class="ico3" @click="sendMessage(chatId)" :disabled="isFormIncomplete">
+            <div class="ico3" @click="sendMessage(chatUsers._id)" :disabled="isFormIncomplete">
               <ion-icon name="send-outline" type="submit" class="send_svg"></ion-icon>
 
             </div>
@@ -98,8 +92,11 @@
 </template>
 
 <script>
+/* eslint-disable */
+// eslint-disable-next-line
 import axiosInstance from "@/axiosInterceptors";
-import { ref, computed } from "vue";
+import { useStore } from 'vuex';
+import { ref, watch, computed } from "vue";
 import io from "socket.io-client";
 
 export default {
@@ -109,20 +106,27 @@ export default {
     return {
       chats: [],
       displayUser: [],
-      chatId: localStorage.getItem("chatId"),
       id: localStorage.getItem("userId"),
+      socketConnected: false,
+      newMessage: null
     };
   },
 
   setup() {
+    const store = useStore();
     const messages = ref([]);
     const chatUsers = ref([]);
     const content = ref("");
     const filterUserName = ref([]);
+    const selectedChat = ref(null);
+    const newMessage = ref(null);
+
     const userId = localStorage.getItem("userId");
+    const socket = io(process.env.VUE_APP_URL);
+    const chatId = ref(store.state.chatId);
     const fetchMessage = async (chatId) => {
-      localStorage.setItem("chatId", chatId);
-      axiosInstance
+      await store.dispatch('setChatId', { chatId: chatId });
+      await axiosInstance
         .get(`message/${chatId}`, {
           withCredentials: true,
         })
@@ -132,10 +136,14 @@ export default {
           chatUsers.value = res.data.chat;
           const username = res.data.chat.users;
           filterUserName.value = username.filter((user) => user._id !== userId);
+          socket.emit('join chat', chatId)
+          selectedChat.value = res.data
         });
     };
 
+
     const sendMessage = async (chatId) => {
+      console.log("Chat Id from somewhere: ", chatId)
       try {
 
         const response = await axiosInstance.post(
@@ -145,39 +153,61 @@ export default {
         );
         content.value = ''
         console.log("Message sent:", response.data);
+        socket.emit('new message', response.data)
 
       } catch (error) {
         console.error("Error sending message:", error);
       }
     };
+
     const isFormIncomplete = computed(() => {
       return !content.value;
     });
 
+    watch(newMessage, (newVal, oldVal) => {
+      if (newVal !== null && newVal !== undefined) {
+        messages.value.push(newVal);
+      }
+    });
+    socket.on('message recieved', (newMessageRecieved) => {
+      console.log(newMessageRecieved)
+      newMessage.value = newMessageRecieved
+      if (!selectedChatCompare || selectedChatCompare._id !== newMessageRecieved.chat._id) {
+      } else {
+        messages.value = [...messages.value, newMessageRecieved]
+        console.log(messages.value)
+      }
+    })
+
+
+
     return {
       fetchMessage,
       userId,
+      chatId,
       messages,
       content,
       chatUsers,
       filterUserName,
       sendMessage,
       isFormIncomplete,
+      selectedChat
     };
   },
   mounted() {
+
     const socket = io(process.env.VUE_APP_URL);
-    socket.on("connection");
+    socket.emit('setup', this.id);
+    socket.on('connection', () => {
+      this.socketConnected = true;
+    });
     axiosInstance
       .get(process.env.VUE_APP_BASE_URL + "chat/fetch", {
         withCredentials: true,
       })
       .then((res) => {
-
-        // this.chats = res.data.data;
         const chatData = res.data.data;
         const idToRemove = this.id
-        console.log(idToRemove)
         const result = chatData.map(results => {
           const withoutUser = results.users.filter(user => user._id !== idToRemove)
           return { ...results, users: withoutUser }
@@ -185,6 +215,10 @@ export default {
         console.log(result)
         this.chats = result
       });
+
+
+
+
   },
   methods: {
     formatDate(date) {
@@ -192,7 +226,6 @@ export default {
       const updatedAt = new Date(date);
 
       if (updatedAt.toDateString() === now.toDateString()) {
-        // Chat message was updated today
         return `${updatedAt.getHours().toString().padStart(2, "0")}:${updatedAt
           .getMinutes()
           .toString()
