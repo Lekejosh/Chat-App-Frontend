@@ -24,7 +24,7 @@
                   <img :src="chat.users[0].avatar.url" :alt="chat.users[0].username" class="ava" />
                   <div>
                     <h3>{{ chat.users[0].username }}</h3>
-                    <p>{{ chat.latestMessage.content.message }}</p>
+                    <p v-if="chat.latestMessage">{{ chat.latestMessage.content.message }}</p>
                   </div>
 
                 </template>
@@ -64,9 +64,17 @@
         </div>
         <div class="mid">
 
-          <div v-for="messagess in messages" :key="messagess._id" :class="userId === messagess.sender._id ? 'me' : 'u'">
+          <template v-for="messagess in messages" :key="messagess._id">
+  <div :class="[messagess.content.type === 'Group Activity' ? 'activity' : (userId === messagess.sender._id ? 'me' : 'u')]">
             <p v-if="messagess.content.type === 'Message'">{{ messagess.content.message }}</p>
+            <p v-else><i>{{ messagess.content.message }}</i></p>
           </div>
+          <!-- <template v-if="newMessage.length">
+            <div v-for="newMess in newMessage" :key="newMess._id" :class="[newMess.content.type === 'Group Activity' ? 'activity' : (userId === newMess.sender._id ? 'me' : 'u')]">
+            <p v-if="newMess.content.type === 'Message'">{{ newMess.content.message }}</p>
+            </div>
+            </template> -->
+          </template>
         </div>
 
 
@@ -95,6 +103,7 @@
 /* eslint-disable */
 // eslint-disable-next-line
 import axiosInstance from "@/axiosInterceptors";
+import SocketioService from '@/services/socketio.service'
 import { useStore } from 'vuex';
 import { ref, watch, computed } from "vue";
 import io from "socket.io-client";
@@ -108,7 +117,7 @@ export default {
       displayUser: [],
       id: localStorage.getItem("userId"),
       socketConnected: false,
-      newMessage: null
+    
     };
   },
 
@@ -119,10 +128,7 @@ export default {
     const content = ref("");
     const filterUserName = ref([]);
     const selectedChat = ref(null);
-    const newMessage = ref(null);
-
     const userId = localStorage.getItem("userId");
-    const socket = io(process.env.VUE_APP_URL);
     const chatId = ref(store.state.chatId);
     const fetchMessage = async (chatId) => {
       await store.dispatch('setChatId', { chatId: chatId });
@@ -136,52 +142,35 @@ export default {
           chatUsers.value = res.data.chat;
           const username = res.data.chat.users;
           filterUserName.value = username.filter((user) => user._id !== userId);
-          socket.emit('join chat', chatId)
-          selectedChat.value = res.data
+          SocketioService.joinChat(chatId)
+          selectedChat.value = chatId
         });
     };
 
 
     const sendMessage = async (chatId) => {
-      console.log("Chat Id from somewhere: ", chatId)
-      try {
+  console.log("Chat Id from somewhere: ", chatId)
 
-        const response = await axiosInstance.post(
-          "message",
-          { content: content.value, chatId: chatId },
-          { withCredentials: true }
-        );
-        content.value = ''
-        console.log("Message sent:", response.data);
-        socket.emit('new message', response.data)
+  try {
+    const response = await axiosInstance.post(
+      "message",
+      { content: content.value, chatId: chatId },
+      { withCredentials: true }
+    );
+    content.value = '';
+    console.log("Message sent:", response.data);
+    SocketioService.newMessage(response.data)
+    messages.value.push(response.data);
+  } catch (error) {
+    console.error("Error sending message:", error);
+  }
+};
 
-      } catch (error) {
-        console.error("Error sending message:", error);
-      }
-    };
 
     const isFormIncomplete = computed(() => {
       return !content.value;
     });
-
-    watch(newMessage, (newVal, oldVal) => {
-      if (newVal !== null && newVal !== undefined) {
-        messages.value.push(newVal);
-      }
-    });
-    socket.on('message recieved', (newMessageRecieved) => {
-      console.log(newMessageRecieved)
-      newMessage.value = newMessageRecieved
-      if (!selectedChatCompare || selectedChatCompare._id !== newMessageRecieved.chat._id) {
-      } else {
-        messages.value = [...messages.value, newMessageRecieved]
-        console.log(messages.value)
-      }
-    })
-
-
-
-    return {
+ return {
       fetchMessage,
       userId,
       chatId,
@@ -191,16 +180,13 @@ export default {
       filterUserName,
       sendMessage,
       isFormIncomplete,
-      selectedChat
+      selectedChat,
     };
   },
   mounted() {
 
     const socket = io(process.env.VUE_APP_URL);
     socket.emit('setup', this.id);
-    socket.on('connection', () => {
-      this.socketConnected = true;
-    });
     axiosInstance
       .get(process.env.VUE_APP_BASE_URL + "chat/fetch", {
         withCredentials: true,
@@ -216,9 +202,23 @@ export default {
         this.chats = result
       });
 
+      //TODO: fix here
 
+      // const selectedChatCompare = this.selectedChat
+     
+    
+       socket.on('message recieved', (newMessageRecieved) => {
+          if (!this.selectedChat || this.selectedChat !== newMessageRecieved.chat._id) {
+      } else {
+        this.messages = [...this.messages,newMessageRecieved]
+      }
+    })
+  },
 
+  
 
+  beforeUnmount(){
+    SocketioService.disconnect()
   },
   methods: {
     formatDate(date) {
@@ -471,6 +471,14 @@ form div:hover {
   border-radius: 5px;
   float: right;
 }
+.activity {
+  margin: 10px auto; 
+  padding: 10px;
+  display: table;
+  clear: both;
+  max-width: 80%;
+  border-radius: 5px;
+}
 
 .u {
   margin: 10px;
@@ -490,6 +498,10 @@ form div:hover {
 
 .u p {
   color: white;
+  font-size: 15px;
+}
+.activity p{
+  color: black;
   font-size: 15px;
 }
 </style>
