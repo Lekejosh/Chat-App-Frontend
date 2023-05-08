@@ -1,3 +1,5 @@
+
+
 <template>
   <div v-if="chats.length">
     <div class="top"></div>
@@ -24,7 +26,9 @@
                   <img :src="chat.users[0].avatar.url" :alt="chat.users[0].username" class="ava" />
                   <div>
                     <h3>{{ chat.users[0].username }}</h3>
-                    <p v-if="chat.latestMessage">{{ chat.latestMessage.content.message }}</p>
+                    <span v-if="isTyping">typing...</span>
+                    <p v-else-if="chat.latestMessage">{{ chat.latestMessage.content.message }}</p>
+                    <p v-else></p>
                   </div>
 
                 </template>
@@ -32,7 +36,8 @@
                   <img :src="chat.groupAvatar.url" :alt="chat.chatName" class="ava" />
                   <div>
                     <h3>{{ chat.chatName }}</h3>
-                    <p v-if="chat.latestMessage?.content.message">{{ chat.latestMessage.content.message }}</p>
+                    <span v-if="isTyping">typing...</span>
+                    <p v-else-if="chat.latestMessage?.content.message">{{ chat.latestMessage.content.message }}</p>
                     <p v-else></p>
                   </div>
                 </template>
@@ -65,15 +70,11 @@
         <div class="mid">
 
           <template v-for="messagess in messages" :key="messagess._id">
-  <div :class="[messagess.content.type === 'Group Activity' ? 'activity' : (userId === messagess.sender._id ? 'me' : 'u')]">
-            <p v-if="messagess.content.type === 'Message'">{{ messagess.content.message }}</p>
-            <p v-else><i>{{ messagess.content.message }}</i></p>
-          </div>
-          <!-- <template v-if="newMessage.length">
-            <div v-for="newMess in newMessage" :key="newMess._id" :class="[newMess.content.type === 'Group Activity' ? 'activity' : (userId === newMess.sender._id ? 'me' : 'u')]">
-            <p v-if="newMess.content.type === 'Message'">{{ newMess.content.message }}</p>
+            <div
+              :class="[messagess.content.type === 'Group Activity' ? 'activity' : (userId === messagess.sender._id ? 'me' : 'u')]">
+              <p v-if="messagess.content.type === 'Message'">{{ messagess.content.message }}</p>
+              <p v-else><i>{{ messagess.content.message }}</i></p>
             </div>
-            </template> -->
           </template>
         </div>
 
@@ -83,8 +84,11 @@
             <div>
               <ion-icon name="attach-outline" class="send_svg"></ion-icon>
             </div>
-            <textarea @keydown.enter.prevent="sendMessage(chatUsers._id)" placeholder="Type your message here" class="in2"
-              name="content" v-model="content"></textarea>
+            <textarea @input="typingHandler" @keydown.enter.prevent="sendMessage(chatUsers._id)"
+              placeholder="Type your message here" class="in2" name="content" v-model="content"></textarea>
+            <!-- <textarea @keydown="typingHandler($event, chatUsers._id)" @input="resizeTextarea"
+              placeholder="Type your message here" class="in2" name="content" v-model="content"></textarea> -->
+
 
             <div class="ico3" @click="sendMessage(chatUsers._id)" :disabled="isFormIncomplete">
               <ion-icon name="send-outline" type="submit" class="send_svg"></ion-icon>
@@ -99,56 +103,48 @@
   <div v-else>Loading...</div>
 </template>
 
-<script>
-/* eslint-disable */
+
+<script setup>
 // eslint-disable-next-line
+/* eslint-disable */
 import axiosInstance from "@/axiosInterceptors";
 import SocketioService from '@/services/socketio.service'
 import { useStore } from 'vuex';
-import { ref, watch, computed } from "vue";
+import { ref, watch, computed, onMounted, onBeforeUnmount } from "vue";
+import debounce from "lodash/debounce";
 import io from "socket.io-client";
 
-export default {
-  name: "UserView",
 
-  data() {
-    return {
-      chats: [],
-      displayUser: [],
-      id: localStorage.getItem("userId"),
-      socketConnected: false,
-    
-    };
-  },
+const store = useStore();
+const messages = ref([]);
+const chatUsers = ref([]);
+const content = ref("");
+const filterUserName = ref([]);
+const selectedChat = ref(null);
+const isTyping = ref(false);
+const userId = localStorage.getItem("userId");
+const chatId = ref(store.state.chatId);
+const socket = io(process.env.VUE_APP_URL);
+const socketConnected = ref(false);
+const chats = ref([]);
 
-  setup() {
-    const store = useStore();
-    const messages = ref([]);
-    const chatUsers = ref([]);
-    const content = ref("");
-    const filterUserName = ref([]);
-    const selectedChat = ref(null);
-    const userId = localStorage.getItem("userId");
-    const chatId = ref(store.state.chatId);
-    const fetchMessage = async (chatId) => {
-      await store.dispatch('setChatId', { chatId: chatId });
-      await axiosInstance
-        .get(`message/${chatId}`, {
-          withCredentials: true,
-        })
-        .then((res) => {
-          console.log("This are the messages: ", res.data);
-          messages.value = res.data.messages;
-          chatUsers.value = res.data.chat;
-          const username = res.data.chat.users;
-          filterUserName.value = username.filter((user) => user._id !== userId);
-          SocketioService.joinChat(chatId)
-          selectedChat.value = chatId
-        });
-    };
+const fetchMessage = async (chatId) => {
+  await store.dispatch('setChatId', { chatId: chatId });
+  await axiosInstance
+    .get(`message/${chatId}`, {
+      withCredentials: true,
+    })
+    .then((res) => {
+      messages.value = res.data.messages;
+      chatUsers.value = res.data.chat;
+      const username = res.data.chat.users;
+      filterUserName.value = username.filter((user) => user._id !== userId);
+      SocketioService.joinChat(chatId)
+      selectedChat.value = chatId
+    });
+};
 
-
-    const sendMessage = async (chatId) => {
+const sendMessage = async (chatId) => {
   console.log("Chat Id from somewhere: ", chatId)
 
   try {
@@ -158,7 +154,8 @@ export default {
       { withCredentials: true }
     );
     content.value = '';
-    console.log("Message sent:", response.data);
+    socket.emit('stop typing', selectedChat)
+    isTyping.value = false
     SocketioService.newMessage(response.data)
     messages.value.push(response.data);
   } catch (error) {
@@ -166,89 +163,87 @@ export default {
   }
 };
 
+const isFormIncomplete = computed(() => {
+  return !content.value;
+});
 
-    const isFormIncomplete = computed(() => {
-      return !content.value;
-    });
- return {
-      fetchMessage,
-      userId,
-      chatId,
-      messages,
-      content,
-      chatUsers,
-      filterUserName,
-      sendMessage,
-      isFormIncomplete,
-      selectedChat,
-    };
-  },
-  mounted() {
+const formatDate = (date) => {
+  const options = { hour: 'numeric', minute: 'numeric', month: '2-digit', day: '2-digit' };
+  const updatedAt = new Date(date);
+  const formatter = new Intl.DateTimeFormat('en-US', options);
 
-    const socket = io(process.env.VUE_APP_URL);
-    socket.emit('setup', this.id);
-    axiosInstance
-      .get(process.env.VUE_APP_BASE_URL + "chat/fetch", {
-        withCredentials: true,
-      })
-      .then((res) => {
-        const chatData = res.data.data;
-        const idToRemove = this.id
-        const result = chatData.map(results => {
-          const withoutUser = results.users.filter(user => user._id !== idToRemove)
-          return { ...results, users: withoutUser }
-        });
-        console.log(result)
-        this.chats = result
-      });
+  return formatter.format(updatedAt);
+}
 
-      //TODO: fix here
 
-      // const selectedChatCompare = this.selectedChat
-     
-    
-       socket.on('message recieved', (newMessageRecieved) => {
-          if (!this.selectedChat || this.selectedChat !== newMessageRecieved.chat._id) {
-      } else {
-        this.messages = [...this.messages,newMessageRecieved]
-      }
-    })
-  },
+const typingHandler = () => {
+  if (!socketConnected) return
 
-  
+  const usersss = filterUserName.value
+  console.log(usersss)
 
-  beforeUnmount(){
-    SocketioService.disconnect()
-  },
-  methods: {
-    formatDate(date) {
-      const now = new Date();
-      const updatedAt = new Date(date);
+  if (!isTyping.value) {
+    socket.emit("typing", (selectedChat.value, usersss))
 
-      if (updatedAt.toDateString() === now.toDateString()) {
-        return `${updatedAt.getHours().toString().padStart(2, "0")}:${updatedAt
-          .getMinutes()
-          .toString()
-          .padStart(2, "0")}`;
-      } else {
-        // Chat message was updated on a different day
-        return `${(updatedAt.getMonth() + 1)
-          .toString()
-          .padStart(2, "0")}/${updatedAt
-            .getDate()
-            .toString()
-            .padStart(2, "0")} ${updatedAt
-              .getHours()
-              .toString()
-              .padStart(2, "0")}:${updatedAt
-                .getMinutes()
-                .toString()
-                .padStart(2, "0")}`;
-      }
-    },
-  },
+    debounceStopTyping()
+  }
 };
+
+const debounceStopTyping = debounce(() => {
+  socket.emit('stop typing', (selectedChat.value, filterUserName.value))
+}, 3000)
+
+
+onMounted(() => {
+  socketConnected.value = true;
+  socket.emit('setup', userId);
+  socket.on('typing', () => isTyping.value = true);
+  socket.on('stop typing', () => isTyping.value = false);
+
+  socket.on('message recieved', (newMessageReceived) => {
+    console.log(newMessageReceived)
+    if (!selectedChat.value || selectedChat.value !== newMessageReceived.chat._id) {
+    } else {
+      messages.value = [...messages.value, newMessageReceived];
+    }
+  });
+
+  axiosInstance
+    .get(process.env.VUE_APP_BASE_URL + "chat/fetch", {
+      withCredentials: true,
+    })
+    .then((res) => {
+      const chatData = res.data.data;
+      const idToRemove = userId;
+      const result = chatData.map(results => {
+        const withoutUser = results.users.filter(user => user._id !== idToRemove);
+        return { ...results, users: withoutUser };
+      });
+      chats.value = result
+    });
+
+
+});
+
+// watch(() => {
+//   console.log("watch function called");
+//   socket.on('message received', (newMessageReceived) => {
+//     console.log(newMessageReceived)
+//     if (!selectedChat.value || selectedChat.value !== newMessageReceived.chat._id) {
+//     } else {
+//       messages.value = [...messages.value, newMessageReceived];
+//     }
+//   });
+// });
+
+
+
+
+onBeforeUnmount(() => {
+  SocketioService.disconnect();
+});
 </script>
+
 
 <style scoped>
 * {
@@ -459,6 +454,14 @@ form div:hover {
   outline: none;
   background: transparent;
   width: 550px;
+  max-height: 200px;
+}
+
+.message-input {
+  font-size: 16px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  max-height: 200px;
 }
 
 .me {
@@ -471,8 +474,9 @@ form div:hover {
   border-radius: 5px;
   float: right;
 }
+
 .activity {
-  margin: 10px auto; 
+  margin: 10px auto;
   padding: 10px;
   display: table;
   clear: both;
@@ -500,7 +504,8 @@ form div:hover {
   color: white;
   font-size: 15px;
 }
-.activity p{
+
+.activity p {
   color: black;
   font-size: 15px;
 }

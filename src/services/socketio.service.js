@@ -1,4 +1,4 @@
-import { io } from 'socket.io-client';
+import { io } from "socket.io-client";
 
 class Socketioservice {
   socket;
@@ -17,16 +17,16 @@ class Socketioservice {
 
   async joinChat(chat) {
     await this.setupSocketConnection();
-    this.socket.emit('join chat', chat);
+    this.socket.emit("join chat", chat);
   }
 
   newMessage(data) {
-    this.socket.emit('new message', data);
+    this.socket.emit("new message", data);
   }
 
- async messageReceived(callback) {
+  async messageReceived(callback) {
     await this.setupSocketConnection();
-    this.socket.on('message received', (newMessageReceived) => {
+    this.socket.on("message received", (newMessageReceived) => {
       console.log(newMessageReceived);
       callback(newMessageReceived);
     });
