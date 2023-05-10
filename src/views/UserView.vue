@@ -7,7 +7,7 @@ import { useStore } from 'vuex';
 import { ref, watch, computed, onMounted, onBeforeUnmount } from "vue";
 import debounce from "lodash/debounce";
 import io from "socket.io-client";
-import { all } from "axios";
+import CreateChat from '@/components/CreateChat.vue'
 
 
 const store = useStore();
@@ -26,11 +26,11 @@ const messageBox = ref(null);
 const allUsers = ref([])
 const search = ref('')
 const filteredSearch = ref([...allUsers.value])
+const create = ref(false)
 
 
 watch(search, () => {
   filteredSearch.value = allUsers.value.filter(users => users.username.toLowerCase().includes(search.value.toLowerCase()))
-  console.log(filteredSearch.value)
 })
 
 watch(messages, (newValue, oldValue) => {
@@ -42,6 +42,7 @@ const fetchAllChat = async () => {
       withCredentials: true,
     })
     .then((res) => {
+      console.log(res.data.data)
       const chatData = res.data.data;
       const idToRemove = userId;
       const result = chatData.map(results => {
@@ -70,8 +71,6 @@ const fetchMessage = async (chatId) => {
 };
 
 const sendMessage = async (chatId) => {
-  console.log("Chat Id from somewhere: ", chatId)
-
   try {
     const response = await axiosInstance.post(
       "message",
@@ -154,6 +153,7 @@ onMounted(async () => {
   socket.on('stop typing', () => isTyping.value = false);
 
   socket.on('message recieved', (newMessageReceived) => {
+    console.log(newMessageReceived)
     if (!selectedChat.value || selectedChat.value !== newMessageReceived.chat._id) {
     } else {
       messages.value = [...messages.value, newMessageReceived];
@@ -205,8 +205,12 @@ onBeforeUnmount(() => {
           <h2>teamIt</h2>
         </div>
         <div class="search">
-          <div class="ico">
+          <div class="ico" @click="create = true">
             <ion-icon name="add-outline"></ion-icon>
+            <template v-if="create">
+              <CreateChat />
+            </template>
+
           </div>
           <input type="text" class="in" v-model.trim="search" placeholder="search for chats here" />
           <div class="ico">
@@ -224,9 +228,6 @@ onBeforeUnmount(() => {
                   <div>
                     <h3>{{ allUser.username }}</h3>
                     <!-- <span v-if="isTyping">typing...</span> -->
-                    <!-- <p v-if="messages.length && messages[-1]?.content?.message">{{
-                        messages[-1].content.message }}</p>
-                      <p v-else>{{ chat.latestMessage.content.message }}</p> -->
                   </div>
 
                 </div>
@@ -243,9 +244,8 @@ onBeforeUnmount(() => {
                     <div>
                       <h3>{{ chat.users[0].username }}</h3>
                       <!-- <span v-if="isTyping">typing...</span> -->
-                      <p v-if="messages.length && messages[-1]?.content?.message">{{
-                        messages[-1].content.message }}</p>
-                      <p v-else>{{ chat.latestMessage.content.message }}</p>
+
+                      <p>{{ chat.latestMessage.content.message }}</p>
                     </div>
 
                   </template>
@@ -253,9 +253,10 @@ onBeforeUnmount(() => {
                     <img :src="chat.groupAvatar.url" :alt="chat.chatName" class="ava" />
                     <div>
                       <h3>{{ chat.chatName }}</h3>
-                      <span v-if="isTyping">typing...</span>
-                      <p v-else-if="chat.latestMessage?.content.message">{{ chat.latestMessage.content.message }}</p>
-                      <p v-else></p>
+                      <!-- <span v-if="isTyping">typing...</span> -->
+                      <p v-if="chat.latestMessage.content.message && userId === chat.latestMessage?.sender._id">{{
+                        chat.latestMessage.content.message }}</p>
+                      <p v-else>{{ chat.latestMessage.sender.username }}: {{ chat.latestMessage.content.message }}</p>
                     </div>
                   </template>
                 </div>
@@ -288,10 +289,19 @@ onBeforeUnmount(() => {
         <div class="mid">
 
           <template v-for="messagess in messages" :key="messagess._id">
-            <div
+            <div v-if="!chatUsers.isGroupChat"
               :class="[messagess.content.type === 'Group Activity' ? 'activity' : (userId === messagess.sender._id ? 'me' : 'u')]">
 
               <p v-if="messagess.content.type === 'Message'">{{ messagess.content.message }}</p>
+              <p v-else><i>{{ messagess.content.message }}</i></p>
+            </div>
+            <div v-else
+              :class="[messagess.content.type === 'Group Activity' ? 'activity' : (userId === messagess.sender._id ? 'me' : 'u')]">
+
+              <p v-if="messagess.content.type === 'Message' && userId === messagess.sender._id">{{
+                messagess.content.message }}</p>
+              <p v-else-if="messagess.content.type === 'Message'">{{ messagess.sender.username }}: {{
+                messagess.content.message }}</p>
               <p v-else><i>{{ messagess.content.message }}</i></p>
             </div>
           </template>
@@ -305,10 +315,6 @@ onBeforeUnmount(() => {
             </div>
             <textarea @input="typingHandler" @keydown.enter.prevent="sendMessage(chatUsers._id)"
               placeholder="Type your message here" class="in2" name="content" v-model="content"></textarea>
-            <!-- <textarea @keydown="typingHandler($event, chatUsers._id)" @input="resizeTextarea"
-              placeholder="Type your message here" class="in2" name="content" v-model="content"></textarea> -->
-
-
             <div class="ico3" @click="sendMessage(chatUsers._id)" :disabled="isFormIncomplete">
               <ion-icon name="send-outline" type="submit" class="send_svg"></ion-icon>
 
