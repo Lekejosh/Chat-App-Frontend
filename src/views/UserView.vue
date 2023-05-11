@@ -27,6 +27,7 @@ const allUsers = ref([])
 const search = ref('')
 const filteredSearch = ref([...allUsers.value])
 const create = ref(false)
+const notifications = ref([])
 
 
 watch(search, () => {
@@ -54,6 +55,28 @@ const fetchAllChat = async () => {
 
 }
 
+const getNumNewNotifications = (chat) => {
+  const matchingNotifications = computed(() =>
+    notifications.value.filter(
+      (notification) => notification.chat._id === chat
+    )
+  );
+  return matchingNotifications.value.length;
+};
+
+const clearNotifications = (chat) => {
+  notifications.value = notifications.value.filter(
+    (notification) => notification.chat._id !== chat
+  );
+};
+
+const onKeyDown = (event) => {
+  if (event.keyCode === 27 || (event.ctrlKey && event.keyCode === 90)) {
+    messages.value = []
+  }
+};
+
+
 const fetchMessage = async (chatId) => {
   await store.dispatch('setChatId', { chatId: chatId });
   await axiosInstance
@@ -67,6 +90,7 @@ const fetchMessage = async (chatId) => {
       filterUserName.value = username.filter((user) => user._id !== userId);
       SocketioService.joinChat(chatId)
       selectedChat.value = chatId
+      clearNotifications(chatId)
     });
 };
 
@@ -155,6 +179,12 @@ onMounted(async () => {
   socket.on('message recieved', (newMessageReceived) => {
     console.log(newMessageReceived)
     if (!selectedChat.value || selectedChat.value !== newMessageReceived.chat._id) {
+      if (!notifications.value.includes(newMessageReceived)) {
+        notifications.value.push(newMessageReceived)
+        fetchAllChat()
+
+        console.log(notifications, "qqqq")
+      }
     } else {
       messages.value = [...messages.value, newMessageReceived];
     }
@@ -180,6 +210,7 @@ onMounted(async () => {
     allUsers.value = res.data.users
   })
 
+  document.addEventListener('keydown', onKeyDown);
 });
 
 
@@ -193,10 +224,11 @@ const scrollToBottom = () => {
 
 onBeforeUnmount(() => {
   SocketioService.disconnect();
+  document.addEventListener('keydown', onKeyDown);
 });
 </script>
 
-<template>
+<template >
   <div v-if="chats.length">
     <div class="top"></div>
     <div class="box">
@@ -245,7 +277,17 @@ onBeforeUnmount(() => {
                       <h3>{{ chat.users[0].username }}</h3>
                       <!-- <span v-if="isTyping">typing...</span> -->
 
-                      <p>{{ chat.latestMessage.content.message }}</p>
+
+                      <template v-if="getNumNewNotifications(chat._id) > 0">
+                        <p style="color: green;">{{ chat.latestMessage.content.message }} :{{
+                          getNumNewNotifications(chat._id)
+                        }}</p>
+
+                      </template>
+                      <template v-else>
+                        <p>{{ chat.latestMessage.content.message }}</p>
+
+                      </template>
                     </div>
 
                   </template>
@@ -254,9 +296,19 @@ onBeforeUnmount(() => {
                     <div>
                       <h3>{{ chat.chatName }}</h3>
                       <!-- <span v-if="isTyping">typing...</span> -->
-                      <p v-if="chat.latestMessage.content.message && userId === chat.latestMessage?.sender._id">{{
-                        chat.latestMessage.content.message }}</p>
-                      <p v-else>{{ chat.latestMessage.sender.username }}: {{ chat.latestMessage.content.message }}</p>
+                      <template v-if="getNumNewNotifications(chat._id) > 0">
+                        <p v-if="chat.latestMessage.content.message && userId === chat.latestMessage?.sender._id">{{
+                          chat.latestMessage.content.message }} </p>
+                        <p v-else style="color: green;">{{ chat.latestMessage.sender.username }}: {{
+                          chat.latestMessage.content.message }} :{{
+    getNumNewNotifications(chat._id)
+  }}</p>
+                      </template>
+                      <template v-else>
+                        <p v-if="chat.latestMessage.content.message && userId === chat.latestMessage?.sender._id">{{
+                          chat.latestMessage.content.message }}</p>
+                        <p v-else>{{ chat.latestMessage.sender.username }}: {{ chat.latestMessage.content.message }}</p>
+                      </template>
                     </div>
                   </template>
                 </div>
