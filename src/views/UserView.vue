@@ -28,6 +28,7 @@ const search = ref('')
 const filteredSearch = ref([...allUsers.value])
 const create = ref(false)
 const notifications = ref([])
+const readArray = ref([])
 
 
 watch(search, () => {
@@ -39,7 +40,7 @@ watch(messages, (newValue, oldValue) => {
 }, { deep: true });
 const fetchAllChat = async () => {
   await axiosInstance
-    .get(process.env.VUE_APP_BASE_URL + "chat/fetch", {
+    .get("chat/fetch", {
       withCredentials: true,
     })
     .then((res) => {
@@ -65,9 +66,16 @@ const getNumNewNotifications = (chat) => {
 };
 
 const clearNotifications = (chat) => {
+  readArray.value = notifications.value.filter((notification) => notification.chat._id === chat)
+
   notifications.value = notifications.value.filter(
     (notification) => notification.chat._id !== chat
   );
+
+
+  readArray.value.forEach(data => {
+    readMessage(data._id)
+  });
 };
 
 const onKeyDown = (event) => {
@@ -111,6 +119,28 @@ const sendMessage = async (chatId) => {
     console.error("Error sending message:", error);
   }
 };
+
+const readMessage = async (messageId) => {
+  await axiosInstance.post(`message/read/${messageId}`, {}, { withCredentials: true }).then((res) => {
+    console.log(res)
+  })
+
+}
+
+const getAllUnReadMessage = async (chatId, userId) => {
+  await axiosInstance.get(`message/${chatId}`, {
+    withCredentials: true,
+  }).then((res) => {
+    const read = res.data.messages.filter((user) => !user.isReadBy.includes(userId));
+
+    if (read.length > 0) {
+
+      notifications.value = [...notifications.value, ...read];
+    }
+    console.log(notifications.value);
+  });
+}
+
 
 const accessChat = async (userId) => {
   try {
@@ -186,12 +216,14 @@ onMounted(async () => {
         console.log(notifications, "qqqq")
       }
     } else {
+
       messages.value = [...messages.value, newMessageReceived];
+      readMessage(newMessageReceived._id)
     }
   });
 
   await axiosInstance
-    .get(process.env.VUE_APP_BASE_URL + "chat/fetch", {
+    .get("chat/fetch", {
       withCredentials: true,
     })
     .then((res) => {
@@ -202,10 +234,14 @@ onMounted(async () => {
         return { ...results, users: withoutUser };
       });
       chats.value = result
+      result.forEach(data => {
+        getAllUnReadMessage(data._id, idToRemove)
+      })
+
     });
 
 
-  await axiosInstance.get(process.env.VUE_APP_BASE_URL + 'user', { withCredentials: true }).then((res) => {
+  await axiosInstance.get('user', { withCredentials: true }).then((res) => {
     console.log(res)
     allUsers.value = res.data.users
   })
