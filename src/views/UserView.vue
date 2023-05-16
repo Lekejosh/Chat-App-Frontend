@@ -44,7 +44,6 @@ const fetchAllChat = async () => {
       withCredentials: true,
     })
     .then((res) => {
-      console.log(res.data.data)
       const chatData = res.data.data;
       const idToRemove = userId;
       const result = chatData.map(results => {
@@ -67,12 +66,9 @@ const getNumNewNotifications = (chat) => {
 
 const clearNotifications = (chat) => {
   readArray.value = notifications.value.filter((notification) => notification.chat._id === chat)
-
   notifications.value = notifications.value.filter(
     (notification) => notification.chat._id !== chat
   );
-
-
   readArray.value.forEach(data => {
     readMessage(data._id)
   });
@@ -109,21 +105,19 @@ const sendMessage = async (chatId) => {
       { content: content.value, chatId: chatId },
       { withCredentials: true }
     );
+
     content.value = '';
     socket.emit('stop typing', selectedChat)
     isTyping.value = false
     SocketioService.newMessage(response.data)
-    messages.value.push(response.data);
-    console.log(response.data)
+    messages.value = [...messages.value, response.data];
   } catch (error) {
     console.error("Error sending message:", error);
   }
 };
 
 const readMessage = async (messageId) => {
-  await axiosInstance.post(`message/read/${messageId}`, {}, { withCredentials: true }).then((res) => {
-    console.log(res)
-  })
+  await axiosInstance.post(`message/read/${messageId}`, {}, { withCredentials: true })
 
 }
 
@@ -132,12 +126,9 @@ const getAllUnReadMessage = async (chatId, userId) => {
     withCredentials: true,
   }).then((res) => {
     const read = res.data.messages.filter((user) => !user.isReadBy.includes(userId));
-
     if (read.length > 0) {
-
       notifications.value = [...notifications.value, ...read];
     }
-    console.log(notifications.value);
   });
 }
 
@@ -146,9 +137,8 @@ const accessChat = async (userId) => {
   try {
     const response = await axiosInstance.post('chat', { userId: userId }, { withCredentials: true });
     fetchMessage(response.data._id)
-
   } catch (error) {
-    console.log(error)
+    console.error(error)
   }
 }
 
@@ -156,32 +146,68 @@ const isFormIncomplete = computed(() => {
   return !content.value;
 });
 
+const formatDateInChat = (date) => {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const updatedAt = new Date(date);
+  const isThisYear = (updatedAt.getFullYear() === today.getFullYear());
+
+  const options = {};
+
+
+  if (updatedAt.toDateString() === today.toDateString()) {
+    options.hour = '2-digit';
+    options.minute = '2-digit';
+  }
+
+  else if (updatedAt.toDateString() === yesterday.toDateString()) {
+    return `Yesterday ${updatedAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+  }
+
+  else {
+    options.day = '2-digit';
+    options.month = '2-digit';
+    options.hour = '2-digit';
+    options.minute = '2-digit';
+    options.year = isThisYear ? undefined : 'numeric';
+  }
+
+  const formatter = new Intl.DateTimeFormat('en-US', options);
+
+  return formatter.format(updatedAt);
+};
+
 const formatDate = (date) => {
   const today = new Date();
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
-
   const updatedAt = new Date(date);
   const isThisYear = (updatedAt.getFullYear() === today.getFullYear());
 
-  const options = {
-    month: 'short',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    year: isThisYear ? undefined : 'numeric'
-  };
+  const options = {};
+
+
+  if (updatedAt.toDateString() === today.toDateString()) {
+    options.hour = '2-digit';
+    options.minute = '2-digit';
+  }
+
+  else if (updatedAt.toDateString() === yesterday.toDateString()) {
+    return `Yesterday`;
+  }
+
+  else {
+    options.day = '2-digit';
+    options.month = '2-digit';
+    options.year = isThisYear ? undefined : 'numeric';
+  }
 
   const formatter = new Intl.DateTimeFormat('en-US', options);
 
-  if (updatedAt.toDateString() === today.toDateString()) {
-    return formatter.format(updatedAt);
-  } else if (updatedAt.toDateString() === yesterday.toDateString()) {
-    return `Yesterday ${formatter.format(updatedAt)}`;
-  } else {
-    return formatter.format(updatedAt);
-  }
+  return formatter.format(updatedAt);
 };
+
 
 
 
@@ -207,16 +233,12 @@ onMounted(async () => {
   socket.on('stop typing', () => isTyping.value = false);
 
   socket.on('message recieved', (newMessageReceived) => {
-    console.log(newMessageReceived)
     if (!selectedChat.value || selectedChat.value !== newMessageReceived.chat._id) {
       if (!notifications.value.includes(newMessageReceived)) {
         notifications.value.push(newMessageReceived)
         fetchAllChat()
-
-        console.log(notifications, "qqqq")
       }
     } else {
-
       messages.value = [...messages.value, newMessageReceived];
       readMessage(newMessageReceived._id)
     }
@@ -242,7 +264,6 @@ onMounted(async () => {
 
 
   await axiosInstance.get('user', { withCredentials: true }).then((res) => {
-    console.log(res)
     allUsers.value = res.data.users
   })
 
@@ -379,18 +400,31 @@ onBeforeUnmount(() => {
           <template v-for="messagess in messages" :key="messagess._id">
             <div v-if="!chatUsers.isGroupChat"
               :class="[messagess.content.type === 'Group Activity' ? 'activity' : (userId === messagess.sender._id ? 'me' : 'u')]">
+              <template v-if="messagess.content.type === 'Message'">
+                <p>{{ messagess.content.message }}</p>
+                <span>{{ formatDateInChat(messagess.createdAt) }}</span>
+              </template>
+              <template v-else>
+                <p><i>{{ messagess.content.message }}</i></p>
+              </template>
 
-              <p v-if="messagess.content.type === 'Message'">{{ messagess.content.message }}</p>
-              <p v-else><i>{{ messagess.content.message }}</i></p>
             </div>
             <div v-else
               :class="[messagess.content.type === 'Group Activity' ? 'activity' : (userId === messagess.sender._id ? 'me' : 'u')]">
+              <template v-if="messagess.content.type === 'Message' && userId === messagess.sender._id">
+                <p>{{
+                  messagess.content.message }}</p>
+                <span>{{ formatDateInChat(messagess.createdAt) }}</span>
+              </template>
+              <template v-else-if="messagess.content.type === 'Message'">
+                <p>{{ messagess.sender.username }}: {{
+                  messagess.content.message }}</p>
+                <span>{{ formatDateInChat(messagess.createdAt) }}</span>
+              </template>
+              <template v-else>
+                <p><i>{{ messagess.content.message }}</i></p>
+              </template>
 
-              <p v-if="messagess.content.type === 'Message' && userId === messagess.sender._id">{{
-                messagess.content.message }}</p>
-              <p v-else-if="messagess.content.type === 'Message'">{{ messagess.sender.username }}: {{
-                messagess.content.message }}</p>
-              <p v-else><i>{{ messagess.content.message }}</i></p>
             </div>
           </template>
         </div>
@@ -402,9 +436,9 @@ onBeforeUnmount(() => {
               <ion-icon name="attach-outline" class="send_svg"></ion-icon>
             </div>
             <textarea @input="typingHandler" @keydown.enter.prevent="sendMessage(chatUsers._id)"
-              placeholder="Type your message here" class="in2" name="content" v-model="content"></textarea>
-            <div class="ico3" @click="sendMessage(chatUsers._id)" :disabled="isFormIncomplete">
-              <ion-icon name="send-outline" type="submit" class="send_svg"></ion-icon>
+              placeholder="Type your message here" class="in2" name="content" v-model.trim="content"></textarea>
+            <div class="ico3" @click="sendMessage(chatUsers._id)">
+              <ion-icon name="send-outline" type="submit" class="send_svg" :disabled="isFormIncomplete"></ion-icon>
 
             </div>
           </form>
@@ -677,6 +711,18 @@ form div:hover {
 .u p {
   color: white;
   font-size: 15px;
+}
+
+.me span {
+  background: none;
+  color: white;
+  font-size: 14px;
+}
+
+.u span {
+  background: none;
+  color: white;
+  font-size: 14px;
 }
 
 .activity p {
