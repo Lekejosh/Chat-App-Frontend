@@ -359,7 +359,8 @@ onBeforeUnmount(() => {
                         <p v-else style="color: green;">{{ chat.latestMessage.sender.username }}: {{
                           chat.latestMessage.content.message }} :{{
     getNumNewNotifications(chat._id)
-  }}</p>
+  }}
+                        </p>
                       </template>
                       <template v-else>
                         <p v-if="chat.latestMessage.content.message && userId === chat.latestMessage?.sender._id">{{
