@@ -9,6 +9,7 @@ const store = createStore({
     user: null,
     authIsReady: false,
     chatId: null,
+    setProfile:null
   },
   mutations: {
     setUser(state, payload) {
@@ -45,6 +46,7 @@ const store = createStore({
         .then((res) => {
           if (res.data.success === true) {
             localStorage.setItem("userId", res.data.user._id);
+            
             context.commit("setUser", res.user);
           }
         })
@@ -158,6 +160,7 @@ axios
     localStorage.setItem("userId", res.data.user._id);
     store.commit("setAuthIsReady", true);
     store.commit("setUser", res.data.user);
+    localStorage.setItem("setProfile",res.data.user.avatar.url)
   });
 
 // export the store
