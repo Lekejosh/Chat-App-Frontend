@@ -5,12 +5,16 @@ import axiosInstance from "@/axiosInterceptors";
 import SocketioService from '@/services/socketio.service'
 import { useStore } from 'vuex';
 import { ref, watch, computed, onMounted, onBeforeUnmount } from "vue";
+import { useRouter, useRoute } from 'vue-router'
 import debounce from "lodash/debounce";
 import io from "socket.io-client";
 import CreateChat from '@/components/CreateChat.vue'
 import { toast } from "vue3-toastify";
 import "vue3-toastify/dist/index.css";
 import ProfilePage from '@/components/ProfilePage.vue';
+import MakeCall from '@/components/MakeCall.vue'
+import router from "@/router";
+const route = useRoute()
 
 const store = useStore();
 const messages = ref([]);
@@ -45,6 +49,10 @@ const showGroupInfo = ref(false);
 const showPopupGroup = ref(false)
 const showPopup = ref(false);
 const showPopup2 = ref(false)
+const showPopupAddAdmin = ref(false)
+const selectedUserAddToGroup = ref([])
+const selectedUserAdmin = ref('')
+const makeCall = ref(false)
 const openPopup = () => {
   showPopup.value = true;
 };
@@ -57,18 +65,69 @@ const openPopup2 = () => {
 const showProfile = () => {
   viewProfile.value = true
 }
+const openPopupAddAdmin = () => {
+  showPopupAddAdmin.value = true
+}
+
+const setCall = () => {
+  makeCall.value = true
+}
+
+const setCallType = () => {
+  localStorage.setItem("callType", "out-going")
+}
+
+const cancelPopup2 = () => {
+  showPopup2.value = false;
+  selectedUserAddToGroup.value = [];
+};
+
+const closeAddAdminPopup = () => {
+  showPopupAddAdmin.value = false
+  selectedUserAdmin.value = ""
+}
+const navigateToWorkspace = (workspaceId) => {
+
+  router.push({ name: 'Task', params: { id: workspaceId } });
+};
+
 
 watch(search, () => {
   filteredSearch.value = allUsers.value.filter(users => users.username.toLowerCase().includes(search.value.toLowerCase()))
 })
 watch(addUserSearch, () => {
-  filteredAddUserSearch.value = allUsers.value.filter(users => users.username.toLowerCase().includes(search.value.toLowerCase()))
+  filteredAddUserSearch.value = allUsers.value.filter(users => users.username.toLowerCase().includes(addUserSearch.value.toLowerCase()))
 })
 
 const toggleGroupInfo = () => {
   showGroupInfo.value = !showGroupInfo.value;
 };
 
+const selected = (userId) => {
+  const index = selectedUserAddToGroup.value.findIndex(user => user === userId);
+  if (index > -1) {
+    selectedUserAddToGroup.value.splice(index, 1);
+  } else {
+    selectedUserAddToGroup.value.push(userId)
+  }
+}
+const selectedAdmin = (userId) => {
+  selectedUserAdmin.value = userId
+}
+
+const isInGroup = userId => {
+  return selectedUserAddToGroup.value.some(user => user === userId);
+};
+
+const makeAdmin = async (chatId) => {
+  await axiosInstance.put(`chat/group/admin/${chatId}`, { userId: selectedUserAdmin.value }, { withCredentials: true }).then((res) => {
+    toast.success(res.data.message)
+    showPopupAddAdmin.value = false
+  }).catch((error) => {
+    console.error(error)
+    showPopupAddAdmin.value = false
+  })
+}
 
 watch(messages, (newValue, oldValue) => {
   fetchAllChat()
@@ -86,7 +145,7 @@ const fetchAllChat = async () => {
         return { ...results, users: withoutUser };
       });
       chats.value = result
-      console.log(result)
+      console.log("this is the chat ",result)
     });
 
 }
@@ -98,9 +157,13 @@ const createBoard = async (chat) => {
       title: workspaceName.value,
       background: 'white'
     }, { withCredentials: true })
+    toast.success("Workspace created successfully")
     workspaceName.value = ''
+    showPopup.value = false
   } catch (error) {
     console.log(error)
+    toast.error("Error Creating workspace")
+    showPopup.value = false
   }
 }
 
@@ -147,6 +210,7 @@ const onKeyDown = (event) => {
 
 
 const fetchMessage = async (chatId) => {
+
   await store.dispatch('setChatId', { chatId: chatId });
   await axiosInstance
     .get(`message/${chatId}`, {
@@ -155,6 +219,11 @@ const fetchMessage = async (chatId) => {
     .then((res) => {
       messages.value = res.data.messages;
       chatUsers.value = res.data.chat;
+      console.log("this is the chatUsers: ",res.data.chat)
+      localStorage.removeItem('chatUsers');
+      localStorage.setItem("chatUsers", JSON.stringify(res.data.chat));
+      localStorage.removeItem("chatId")
+      localStorage.setItem("chatId", chatId)
       const user = res.data.chat.users.map(user => user._id)
       const userWithoutAuth = user.filter(u => u !== userId)
       groupUsers.value = userWithoutAuth
@@ -163,7 +232,6 @@ const fetchMessage = async (chatId) => {
       SocketioService.joinChat(chatId)
       selectedChat.value = chatId
       clearNotifications(chatId)
-      console.log(res.data)
     });
 };
 
@@ -211,6 +279,22 @@ const accessChat = async (userId) => {
   }
 }
 
+const exitGroup = async (chatId) => {
+  await axiosInstance.delete(`chat/group/exit?group=${chatId}`, { withCredentials: true }).then((res) => {
+    console.log(res)
+  }).catch((error) => {
+    console.error(error)
+  })
+}
+
+const addUser = async (chatId) => {
+  await axiosInstance.put(`chat/group/add`, { chatId: chatId, users: selectedUserAddToGroup.value }, { withCredentials: true }).then((res) => {
+    console.log(res)
+  }).catch((error) => {
+    console.error(error)
+  })
+}
+
 const isFormIncomplete = computed(() => {
   return !content.value;
 });
@@ -246,6 +330,8 @@ const formatDateInChat = (date) => {
 
   return formatter.format(updatedAt);
 };
+
+
 
 const formatDate = (date) => {
   const today = new Date();
@@ -285,53 +371,120 @@ const toggleDropdown = () => {
 const toggleAttachOverlay = () => {
   showOverlay.value = !showOverlay.value;
 };
+// const openFileExplorer = () => {
+//   const fileInput = document.createElement("input");
+//   fileInput.type = "file";
+//   fileInput.accept = ".doc,.docx,.pdf,.txt";
+//   fileInput.style.display = "none";
+//   fileInput.addEventListener("change", handleFileSelection);
+//   document.body.appendChild(fileInput);
+//   fileInput.click();
+
+//   // Show the overlay container
+//   showOverlay.value = !showOverlay.value;
+// };
+
+// const handleFileSelection = (event) => {
+//   const file = event.target.files[0];
+//   // Do something with the selected file
+//   console.log("Selected file:", file);
+
+//   // Call the sendDocument function with the chatId
+//   const chatId = ""; // provide the chatId here
+//   showOverlay.value = true; // Show the overlay container
+//   sendDocument(chatId, file);
+// };
+
+
+// const sendDocument = async (chatId, file) => {
+//   try {
+//     const formData = new FormData();
+//     formData.append("document", file);
+//     formData.append("chatId", chatId);
+
+//     const response = await axiosInstance.post(
+//       "message/send/document",
+//       formData,
+//       { withCredentials: true }
+//     );
+
+//     // Clear the content and update the messages
+//     content.value = '';
+//     socket.emit('stop typing', selectedChat)
+//     isTyping.value = false
+//     SocketioService.newMessage(response.data)
+//     messages.value = [...messages.value, response.data];
+//   } catch (error) {
+//     console.error("Error sending message:", error);
+//   }
+// };
+
 const openFileExplorer = () => {
-  const fileInput = document.createElement("input");
-  fileInput.type = "file";
-  fileInput.accept = ".doc,.docx,.pdf,.txt";
-  fileInput.style.display = "none";
-  fileInput.addEventListener("change", handleFileSelection);
-  document.body.appendChild(fileInput);
-  fileInput.click();
-
-  // Show the overlay container
-  showOverlay.value = !showOverlay.value;
-};
-
-const handleFileSelection = (event) => {
+  const fileInput = document.querySelector('input[type="file"]')
+  fileInput.click()
+}
+// Add a new ref to store the selected file
+const selectedFile = ref(null);
+const oldAvatar = ref('')
+const avatar = ref('')
+const previewImage = ref('')
+// Handle file selection from the file explorer
+const handleFileChange = (event) => {
+  oldAvatar.value = avatar.value
   const file = event.target.files[0];
-  // Do something with the selected file
-  console.log("Selected file:", file);
+  const reader = new FileReader();
 
-  // Call the sendDocument function with the chatId
-  const chatId = ""; // provide the chatId here
-  showOverlay.value = true; // Show the overlay container
-  sendDocument(chatId, file);
-};
+  reader.onload = () => {
+    previewImage.value = reader.result;
+  };
 
-
-const sendDocument = async (chatId, file) => {
-  try {
-    const formData = new FormData();
-    formData.append("document", file);
-    formData.append("chatId", chatId);
-
-    const response = await axiosInstance.post(
-      "message/send/document",
-      formData,
-      { withCredentials: true }
-    );
-
-    // Clear the content and update the messages
-    content.value = '';
-    socket.emit('stop typing', selectedChat)
-    isTyping.value = false
-    SocketioService.newMessage(response.data)
-    messages.value = [...messages.value, response.data];
-  } catch (error) {
-    console.error("Error sending message:", error);
+  if (file) {
+    reader.readAsDataURL(file);
+    // Store the selected file in the selectedFile ref
+    selectedFile.value = file;
   }
 };
+
+// Save the selected image
+const saveImage = async () => {
+  if (selectedFile.value) {
+    const formData = new FormData();
+    formData.append('avatar', selectedFile.value);
+
+    await axiosInstance
+      .post('user/update/avatar', formData, {
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      })
+      .then((res) => {
+        avatar.value = previewImage.value;
+        previewImage.value = ''
+        avatarOption.value = ''
+        toast.success("Avatar Updated successfully")
+      })
+      .catch((error) => {
+        avatar.value = oldAvatar.value
+        previewImage.value = '';
+      });
+  }
+};
+
+
+// Cancel the image update
+const cancelUpdate = () => {
+  previewImage.value = ''
+}
+
+const deleteImage = async () => {
+  await axiosInstance.delete('user/update/avatar', { withCredentials: true }).then(() => {
+    avatar.value = "https://icon-library.com/images/anonymous-avatar-icon/anonymous-avatar-icon-25.jpg";
+    previewImage.value = ''
+    avatarOption.value = 'default_image'
+    toast.success("Avatar Updated successfully")
+  })
+}
 
 
 
@@ -349,12 +502,15 @@ const debounceStopTyping = debounce(() => {
   socket.emit('stop typing', (selectedChat.value, filterUserName.value))
 }, 3000)
 
+// const voiceCall = ref()
 
 onMounted(async () => {
   socketConnected.value = true;
   socket.emit('setup', userId);
   socket.on('typing', () => isTyping.value = true);
   socket.on('stop typing', () => isTyping.value = false);
+
+  // if(voiceCall.type)
 
   socket.on('message recieved', (newMessageReceived) => {
     if (!selectedChat.value || selectedChat.value !== newMessageReceived.chat._id) {
@@ -367,6 +523,28 @@ onMounted(async () => {
       readMessage(newMessageReceived._id)
     }
   });
+
+  // socket.on("outgoing-video-call",(data)=>{
+  //   const sendUserSocket = data.to
+  //   if(sendUserSocket){
+  //     socket.to(sendUserSocket).emit("incoming-video-call",{
+  //       from: data.from,
+  //       roomId:data.roomId,
+  //       callType:data.callType
+  //     })
+  //   }
+  // })
+
+  // socket.on("outgoing-voice-call",(data)=>{
+  //   const sendUserSocket = data.to
+  //   if(sendUserSocket){
+  //     socket.to(sendUserSocket).emit("incoming-voice-call",{
+  //       from: data.from,
+  //       roomId:data.roomId,
+  //       callType:data.callType
+  //     })
+  //   }
+  // })
 
   await axiosInstance.get("user/me", {
     withCredentials: true
@@ -399,6 +577,8 @@ onMounted(async () => {
   })
 
   document.addEventListener('keydown', onKeyDown);
+
+
 });
 
 
@@ -417,12 +597,14 @@ onBeforeUnmount(() => {
 </script>
 
 <template >
+  <!-- <template v-if="makeCall">
+      <MakeCall :users="chatUsers" />
+    </template> -->
   <template v-if="viewProfile">
-                  <ProfilePage :avatar="me.avatar.url" :avatarOption="me.avatar.public_id" 
-                  :status = 'me.status'
-                  :username="me.username"
-                    :phoneNumber="me.mobileNumber" :emailAddress="me.email" />
-                </template>
+    <ProfilePage :avatar="me.avatar.url" :avatarOption="me.avatar.public_id" :status='me.status' :username="me.username"
+      :phoneNumber="me.mobileNumber" :emailAddress="me.email" />
+  </template>
+
   <div class="container">
 
     <div v-if="chats.length">
@@ -434,10 +616,8 @@ onBeforeUnmount(() => {
             <div class="profile-icon">
               <img :src="profileImage" class="ava" @click="showProfile" />
               <template v-if="viewProfile">
-                <ProfilePage :avatar="me.avatar.url" :avatarOption="me.avatar.public_id" 
-                :status = 'me.status'
-                :username="me.username"
-                  :phoneNumber="me.mobileNumber" :emailAdrress="me.email" />
+                <ProfilePage :avatar="me.avatar.url" :avatarOption="me.avatar.public_id" :status='me.status'
+                  :username="me.username" :phoneNumber="me.mobileNumber" :emailAdrress="me.email" />
               </template>
             </div>
             <h2>teamIt</h2>
@@ -546,11 +726,16 @@ onBeforeUnmount(() => {
             <div class="dropdown">
               <img src="assets/img/ellipsis.svg" style="cursor:pointer" class="icon2" @click="toggleDropdown" />
               <ul v-if="showDropdown">
-                <li v-if="!chatUsers.isGroupChat"> <template v-if="chatUsers.workspace.length">Open Workspace</template>
+                <li v-if="!chatUsers.isGroupChat" @click="openPopup"> <template v-if="chatUsers.workspace.length">Open
+                    Workspace</template>
                   <template v-else>Create Private Workspace</template>
                 </li>
                 <li v-if="!chatUsers.isGroupChat">View User Info</li>
                 <li v-if="chatUsers.isGroupChat" @click="toggleGroupInfo">View Group Info</li>
+                <router-link to="/call/jecejcnecec/cemcoemceomc">
+                  <li @click="setCallType">Make Call</li>
+                </router-link>
+
 
                 <li v-if="chatUsers.isGroupChat" @click="openPopup">
                   <template v-if="chatUsers.workspace.length">Open Workspace</template>
@@ -625,29 +810,52 @@ onBeforeUnmount(() => {
               <button @click="showPopupGroup = false">Cancel</button>
             </div>
           </div>
-          <div class="popup-overlay" v-if="showPopup2">
+          <div class="popup-overlay" v-if="showPopupAddAdmin">
             <div class="popup">
-              <h2>Add New User</h2>
-              <input type="text" v-model="addUserSearch" placeholder="Workspace Name" />
-              <button @click="addUser(chatUsers._id)">Create</button>
-              <button @click="showPopup2 = false">Cancel</button>
-            </div>
-            <template v-if="addUserSearch">
+              <h2>Add Amin</h2>
               <ul>
 
-                <li v-for="allUser in filteredAddUserSearch" :key="allUser._id" @click="accessChat(allUser._id)">
+                <li v-for="allUser in chatUsers.users" :key="allUser._id" @click="selectedAdmin(allUser._id)">
                   <div class="friend">
                     <div class="img_name">
                       <div>
                         <h3>{{ allUser.username }}</h3>
-                        <!-- <span v-if="isTyping">typing...</span> -->
+
                       </div>
 
                     </div>
                   </div>
                 </li>
               </ul>
-            </template>
+              <button @click="makeAdmin(chatUsers._id)">Make Admin</button>
+              <button @click="closeAddAdminPopup">Cancel</button>
+            </div>
+          </div>
+          <div class="popup-overlay" v-if="showPopup2">
+            <div class="popup">
+              <h2>Add New User</h2>
+              <input type="text" v-model="addUserSearch" placeholder="Search User By Username" />
+              <button @click="addUser(chatUsers._id)">Add</button>
+              <button @click="cancelPopup2">Cancel</button>
+              <template v-if="addUserSearch">
+                <ul>
+
+                  <li v-for="allUser in filteredAddUserSearch" :key="allUser._id" @click="selected(allUser._id)"
+                    :style="{ backgroundColor: isInGroup(allUser._id) ? 'darkgrey' : '' }">
+                    <div class="friend">
+                      <div class="img_name">
+                        <div>
+                          <h3>{{ allUser.username }}</h3>
+
+                        </div>
+
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+              </template>
+            </div>
+
           </div>
         </div>
         <div v-else>Loading...</div>
@@ -657,25 +865,53 @@ onBeforeUnmount(() => {
               <div class="group-body">
                 <div class="group-info">
                   <div class="group-icon">
-                    <img :src="chatUsers.groupAvatar.url" :alt="chatUsers.chatName" class="ava" />
+                    <img :src="previewImage || chatUsers.groupAvatar.url" :alt="chatUsers.chatName" class="ava" />
+                    <div class="update-avatar">
+                      <template v-if="chatUsers.groupAdmin.find((user) => user._id.toString() === userId)">
+                        <template v-if="!previewImage">
+                          <button @click="openFileExplorer">Update Avatar</button>
+                          <template v-if="avatarOption !== 'default_image'">
+                            <button @click="deleteImage">Delete Avatar</button>
+                          </template>
+                        </template>
+                        <template v-else>
+                          <button @click="cancelUpdate">Cancel</button>
+                          <button @click="saveImage">Save Image</button>
+                        </template>
+                      </template>
+
+
+                    </div>
                   </div>
-                  <div class="group-name" @click="openPopupGroup">
-                    {{ chatUsers.chatName }}
-                  </div>
+                  <template v-if="chatUsers.groupAdmin.find((user) => user._id.toString() === userId)">
+
+                    <div class="group-name" @click="openPopupGroup">
+                      {{ chatUsers.chatName }}
+                    </div>
+                  </template>
+                  <template v-else>
+                    <div class="group-name">
+                      {{ chatUsers.chatName }}
+                    </div>
+                  </template>
                 </div>
                 <div class="group-admins">
                   <h4 style="color: darkgrey; font-weight: bold;">Admins</h4>
                   <ul>
                     <li v-for="admin in chatUsers.groupAdmin" :key="admin._id">{{ admin.username }}</li>
                   </ul>
+                  <template v-if="chatUsers.groupAdmin.find((user) => user._id.toString() === userId)">
+                    <button @click="openPopupAddAdmin" class="create-workspace-btn">Add Admin</button>
+                  </template>
                 </div>
                 <div class="workspace-list">
                   <h4 style="color: darkgrey; font-weight: bold;">Workspace</h4>
                   <ul>
                     <li v-for="workspace in chatUsers.workspace" :key="workspace._id"
-                      @click="viewWorkspace(workspace._id)" style="cursor: pointer;">{{ workspace.title }}</li>
+                      @click="navigateToWorkspace(workspace._id)" style="cursor: pointer;">{{ workspace.title }}</li>
                   </ul>
-                  <button v-if="!chatUsers.workspace.length" class="create-workspace-btn">Create Workspace</button>
+                  <button @click="openPopup" v-if="!chatUsers.workspace.length" class="create-workspace-btn">Create
+                    Workspace</button>
                 </div>
                 <div class="user-list">
                   <h4 style="color: darkgrey; font-weight: bold;">Members</h4>
@@ -685,7 +921,47 @@ onBeforeUnmount(() => {
                 </div>
 
                 <!-- Exit Group Button -->
-                <button style="margin: 0 auto; display: block; color: red;">Exit Group</button>
+                <button style="margin: 0 auto; display: block; color: red;" @click="exitGroup(chatUsers._id)">Exit
+                  Group</button>
+
+              </div>
+            </div>
+          </template>
+          <template v-else>
+            <div class="group-section">
+              <div class="group-body">
+                <div class="group-info">
+                  <div class="group-icon">
+                    <img :src="filterUserName[0].avatar.url" :alt="filterUserName[0].username" class="ava" />
+                  </div>
+                  <div class="group-name">
+                    <h1>{{ filterUserName[0].username }}</h1>
+
+                  </div>
+                </div>
+                <div class="personal-details" style="color:black">
+                  <h2>Personal Details</h2>
+
+
+                  <p><strong>status:</strong> {{ filterUserName[0].status }}</p>
+                  <p><strong>Email:</strong> {{ filterUserName[0].email }}</p>
+                  <p><strong>Phone Number:</strong> {{ filterUserName[0].mobileNumber }}</p>
+
+                </div>
+                <div class="workspace-list">
+                  <h4 style="color: darkgrey; font-weight: bold;">Workspace</h4>
+                  <ul>
+                    <li v-for="workspace in chatUsers.workspace" :key="workspace._id"
+                      @click="navigateToWorkspace(workspace._id)" style="cursor: pointer;">{{ workspace.title }}</li>
+                  </ul>
+                  <button @click="openPopup" v-if="!chatUsers.workspace.length" class="create-workspace-btn">Create
+                    Workspace</button>
+                </div>
+
+
+
+                <!-- Exit Group Button -->
+                <button style="margin: 0 auto; display: block; color: red;">Block User</button>
 
               </div>
             </div>
@@ -695,7 +971,318 @@ onBeforeUnmount(() => {
       </div>
 
     </div>
-    <div v-else>Loading...</div>
+    <div v-else>
+
+        <div class="top"></div>
+        <div class="box">
+          <div class="left">
+            <div class="topp">
+              <div class="profile-icon">
+                <img :src="profileImage" class="ava" @click="showProfile" />
+                <template v-if="viewProfile">
+                  <ProfilePage :avatar="me.avatar.url" :avatarOption="me.avatar.public_id" :status='me.status'
+                    :username="me.username" :phoneNumber="me.mobileNumber" :emailAdrress="me.email" />
+                </template>
+              </div>
+              <h2>teamIt</h2>
+            </div>
+            <div class="search">
+              <div class="ico" @click="create = true">
+                <ion-icon name="add-outline"></ion-icon>
+                <template v-if="create">
+                  <CreateChat />
+                </template>
+
+              </div>
+              <input type="text" class="in" v-model.trim="search" placeholder="search for chats here" />
+              <div class="ico">
+                <img src="assets/img/search.svg" alt="" class="icon1" />
+              </div>
+            </div>
+            <ul>
+             
+                <li v-for="allUser in allUsers" :key="allUser._id" @click="accessChat(allUser._id)">
+                  <div class="friend">
+                    <div class="img_name">
+
+
+                      <img :src="allUser.avatar.url" :alt="allUser.username" class="ava" />
+                      <div>
+                        <h3>{{ allUser.username }}</h3>
+                        <!-- <span v-if="isTyping">typing...</span> -->
+                      </div>
+
+                    </div>
+                  </div>
+                </li>
+          
+             
+            </ul>
+          </div>
+          <div v-if="messages.length" class="right" v-bind:ref="messageBox">
+            <div class="right_top">
+              <div v-if="!chatUsers.isGroupChat" class="img_name">
+                <img :src="filterUserName[0].avatar.url" :alt="filterUserName[0].username" class="ava" />
+                <div>
+                  <h3>{{ filterUserName[0].username }}</h3>
+                  <!-- <p>active 30 seconds ago...</p> -->
+                </div>
+              </div>
+              <div v-else class="img_name">
+                <img :src="chatUsers.groupAvatar.url" :alt="chatUsers.chatName" class="ava" />
+                <div>
+                  <h3>{{ chatUsers.chatName }}</h3>
+                  <!-- <p>active 30 seconds ago...</p> -->
+                </div>
+              </div>
+              <div class="dropdown">
+                <img src="assets/img/ellipsis.svg" style="cursor:pointer" class="icon2" @click="toggleDropdown" />
+                <ul v-if="showDropdown">
+                  <li v-if="!chatUsers.isGroupChat" @click="openPopup"> <template v-if="chatUsers.workspace.length">Open
+                      Workspace</template>
+                    <template v-else>Create Private Workspace</template>
+                  </li>
+                  <li v-if="!chatUsers.isGroupChat">View User Info</li>
+                  <li v-if="chatUsers.isGroupChat" @click="toggleGroupInfo">View Group Info</li>
+                  <router-link to="/call/jecejcnecec/cemcoemceomc">
+                    <li @click="setCallType">Make Call</li>
+                  </router-link>
+
+
+                  <li v-if="chatUsers.isGroupChat" @click="openPopup">
+                    <template v-if="chatUsers.workspace.length">Open Workspace</template>
+                    <template v-else>Create Workspace</template>
+                  </li>
+                  <li v-if="chatUsers.isGroupChat" @click="openPopup2">Add User</li>
+                </ul>
+              </div>
+
+            </div>
+            <div class="mid">
+
+              <template v-for="messagess in messages" :key="messagess._id">
+                <div v-if="!chatUsers.isGroupChat"
+                  :class="[messagess.content.type === 'Group Activity' ? 'activity' : (userId === messagess.sender._id ? 'me' : 'u')]">
+                  <template v-if="messagess.content.type === 'Message'">
+                    <p>{{ messagess.content.message }}</p>
+                    <span>{{ formatDateInChat(messagess.createdAt) }}</span>
+                  </template>
+                  <template v-else>
+                    <p><i>{{ messagess.content.message }}</i></p>
+                  </template>
+
+                </div>
+                <div v-else
+                  :class="[messagess.content.type === 'Group Activity' ? 'activity' : (userId === messagess.sender._id ? 'me' : 'u')]">
+                  <template v-if="messagess.content.type === 'Message' && userId === messagess.sender._id">
+                    <p>{{
+                      messagess.content.message }}</p>
+                    <span>{{ formatDateInChat(messagess.createdAt) }}</span>
+                  </template>
+                  <template v-else-if="messagess.content.type === 'Message'">
+                    <p>{{ messagess.sender.username }}: {{
+                      messagess.content.message }}</p>
+                    <span>{{ formatDateInChat(messagess.createdAt) }}</span>
+                  </template>
+                  <template v-else>
+                    <p><i>{{ messagess.content.message }}</i></p>
+                  </template>
+
+                </div>
+              </template>
+            </div>
+
+
+            <div class="btm">
+              <form @submit.prevent>
+                <div>
+                  <ion-icon name="attach-outline" class="send_svg" @click="openFileExplorer"></ion-icon>
+                </div>
+                <textarea @input="typingHandler" @keydown.enter.prevent="sendMessage(chatUsers._id)"
+                  placeholder="Type your message here" class="in2" name="content" v-model.trim="content"></textarea>
+                <div class="ico3" @click="sendMessage(chatUsers._id)">
+                  <ion-icon name="send-outline" type="submit" class="send_svg" :disabled="isFormIncomplete"></ion-icon>
+
+                </div>
+              </form>
+            </div>
+            <div class="popup-overlay" v-if="showPopup">
+              <div class="popup">
+                <h2>Enter Workspace Name</h2>
+                <input type="text" v-model="workspaceName" placeholder="Workspace Name" />
+                <button @click="createBoard(chatUsers._id)">Create</button>
+                <button @click="showPopup = false">Cancel</button>
+              </div>
+            </div>
+            <div class="popup-overlay" v-if="showPopupGroup">
+              <div class="popup">
+                <h2>Edit Group Name</h2>
+                <input type="text" v-model="groupName" />
+                <button @click="editGroup(chatUsers._id)">Done</button>
+                <button @click="showPopupGroup = false">Cancel</button>
+              </div>
+            </div>
+            <div class="popup-overlay" v-if="showPopupAddAdmin">
+              <div class="popup">
+                <h2>Add Amin</h2>
+                <ul>
+
+                  <li v-for="allUser in chatUsers.users" :key="allUser._id" @click="selectedAdmin(allUser._id)">
+                    <div class="friend">
+                      <div class="img_name">
+                        <div>
+                          <h3>{{ allUser.username }}</h3>
+
+                        </div>
+
+                      </div>
+                    </div>
+                  </li>
+                </ul>
+                <button @click="makeAdmin(chatUsers._id)">Make Admin</button>
+                <button @click="closeAddAdminPopup">Cancel</button>
+              </div>
+            </div>
+            <div class="popup-overlay" v-if="showPopup2">
+              <div class="popup">
+                <h2>Add New User</h2>
+                <input type="text" v-model="addUserSearch" placeholder="Search User By Username" />
+                <button @click="addUser(chatUsers._id)">Add</button>
+                <button @click="cancelPopup2">Cancel</button>
+                <template v-if="addUserSearch">
+                  <ul>
+
+                    <li v-for="allUser in filteredAddUserSearch" :key="allUser._id" @click="selected(allUser._id)"
+                      :style="{ backgroundColor: isInGroup(allUser._id) ? 'darkgrey' : '' }">
+                      <div class="friend">
+                        <div class="img_name">
+                          <div>
+                            <h3>{{ allUser.username }}</h3>
+
+                          </div>
+
+                        </div>
+                      </div>
+                    </li>
+                  </ul>
+                </template>
+              </div>
+
+            </div>
+          </div>
+          <div v-else>Loading...</div>
+          <template v-if="messages.length">
+            <template v-if="chatUsers.isGroupChat">
+              <div class="group-section">
+                <div class="group-body">
+                  <div class="group-info">
+                    <div class="group-icon">
+                      <img :src="previewImage || chatUsers.groupAvatar.url" :alt="chatUsers.chatName" class="ava" />
+                      <div class="update-avatar">
+                        <template v-if="chatUsers.groupAdmin.find((user) => user._id.toString() === userId)">
+                          <template v-if="!previewImage">
+                            <button @click="openFileExplorer">Update Avatar</button>
+                            <template v-if="avatarOption !== 'default_image'">
+                              <button @click="deleteImage">Delete Avatar</button>
+                            </template>
+                          </template>
+                          <template v-else>
+                            <button @click="cancelUpdate">Cancel</button>
+                            <button @click="saveImage">Save Image</button>
+                          </template>
+                        </template>
+
+
+                      </div>
+                    </div>
+                    <template v-if="chatUsers.groupAdmin.find((user) => user._id.toString() === userId)">
+
+                      <div class="group-name" @click="openPopupGroup">
+                        {{ chatUsers.chatName }}
+                      </div>
+                    </template>
+                    <template v-else>
+                      <div class="group-name">
+                        {{ chatUsers.chatName }}
+                      </div>
+                    </template>
+                  </div>
+                  <div class="group-admins">
+                    <h4 style="color: darkgrey; font-weight: bold;">Admins</h4>
+                    <ul>
+                      <li v-for="admin in chatUsers.groupAdmin" :key="admin._id">{{ admin.username }}</li>
+                    </ul>
+                    <template v-if="chatUsers.groupAdmin.find((user) => user._id.toString() === userId)">
+                      <button @click="openPopupAddAdmin" class="create-workspace-btn">Add Admin</button>
+                    </template>
+                  </div>
+                  <div class="workspace-list">
+                    <h4 style="color: darkgrey; font-weight: bold;">Workspace</h4>
+                    <ul>
+                      <li v-for="workspace in chatUsers.workspace" :key="workspace._id"
+                        @click="navigateToWorkspace(workspace._id)" style="cursor: pointer;">{{ workspace.title }}</li>
+                    </ul>
+                    <button @click="openPopup" v-if="!chatUsers.workspace.length" class="create-workspace-btn">Create
+                      Workspace</button>
+                  </div>
+                  <div class="user-list">
+                    <h4 style="color: darkgrey; font-weight: bold;">Members</h4>
+                    <ul>
+                      <li v-for="members in chatUsers.users" :key="members._id">{{ members.username }}</li>
+                    </ul>
+                  </div>
+
+                  <!-- Exit Group Button -->
+                  <button style="margin: 0 auto; display: block; color: red;" @click="exitGroup(chatUsers._id)">Exit
+                    Group</button>
+
+                </div>
+              </div>
+            </template>
+            <template v-else>
+              <div class="group-section">
+                <div class="group-body">
+                  <div class="group-info">
+                    <div class="group-icon">
+                      <img :src="filterUserName[0].avatar.url" :alt="filterUserName[0].username" class="ava" />
+                    </div>
+                    <div class="group-name">
+                      <h1>{{ filterUserName[0].username }}</h1>
+
+                    </div>
+                  </div>
+                  <div class="personal-details" style="color:black">
+                    <h2>Personal Details</h2>
+
+
+                    <p><strong>status:</strong> {{ filterUserName[0].status }}</p>
+                    <p><strong>Email:</strong> {{ filterUserName[0].email }}</p>
+                    <p><strong>Phone Number:</strong> {{ filterUserName[0].mobileNumber }}</p>
+
+                  </div>
+                  <div class="workspace-list">
+                    <h4 style="color: darkgrey; font-weight: bold;">Workspace</h4>
+                    <ul>
+                      <li v-for="workspace in chatUsers.workspace" :key="workspace._id"
+                        @click="navigateToWorkspace(workspace._id)" style="cursor: pointer;">{{ workspace.title }}</li>
+                    </ul>
+                    <button @click="openPopup" v-if="!chatUsers.workspace.length" class="create-workspace-btn">Create
+                      Workspace</button>
+                  </div>
+
+
+
+                  <!-- Exit Group Button -->
+                  <button style="margin: 0 auto; display: block; color: red;">Block User</button>
+
+                </div>
+              </div>
+            </template>
+          </template>
+
+        </div>
+
+      </div>
     <div v-if="showOverlay" class="overlay-container">
       <div class="overlay-content">
         <!-- Show the attached document -->
@@ -745,6 +1332,12 @@ onBeforeUnmount(() => {
   align-items: center;
   z-index: 9999;
 }
+
+.personal-details,
+.security {
+  margin-top: 20px;
+}
+
 
 .popup {
   background-color: white;
@@ -813,6 +1406,7 @@ onBeforeUnmount(() => {
   flex-grow: 1;
   display: flex;
   flex-direction: column;
+  align-items: center;
 }
 
 .group-info {
@@ -821,11 +1415,10 @@ onBeforeUnmount(() => {
   align-items: center;
 }
 
-.group-icon {
-  width: 50px;
-  height: 50px;
+.group-icon img {
+  width: 150px;
+  height: 150px;
   border-radius: 50%;
-  background-color: #ccc;
   /* Example background color */
 }
 

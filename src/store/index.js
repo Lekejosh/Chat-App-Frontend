@@ -14,14 +14,12 @@ const store = createStore({
   mutations: {
     setUser(state, payload) {
       state.user = payload;
-      console.log("User State Changed: ", state.user);
     },
     setAuthIsReady(state, payload) {
       state.authIsReady = payload;
     },
     setChatId(state, chatId) {
       state.chatId = chatId;
-      console.log("chat ID: ", state.chatId);
     },
   },
   actions: {
@@ -56,7 +54,6 @@ const store = createStore({
     },
     async login(context, { emailName, password }) {
       //async code
-      console.log(emailName, password);
       await axios
         .post(
           process.env.VUE_APP_BASE_URL + "user/login",
@@ -70,7 +67,6 @@ const store = createStore({
         .then((res) => {
           if (res.data.success === true) {
             localStorage.setItem("userId", res.data.user._id);
-            console.log("logged in user", res.data);
             context.commit("setUser", res.data.user);
           }
         })

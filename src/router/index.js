@@ -1,15 +1,14 @@
 import { createRouter, createWebHistory } from "vue-router";
 import SignUp from "../views/SignUp.vue";
 import Login from "../views/Login.vue";
-import TeamBoard from '../views/TeamBoard.vue';
 import VerifyAccount from "../views/VerifyAccount.vue";
 import ForgotPassword from "../views/ForgotPassword.vue";
 import ResetPassword from "../views/ResetPassword.vue";
 import UserView from "../views/UserView.vue";
 import NotFound from "../views/NotFound.vue";
 import AuthMixin from "@/mixin/AuthMaxin";
-
-
+import MakeCall from "../components/MakeCall.vue";
+import Task from "../views/TaskManagement.vue";
 const routes = [
   {
     path: "/",
@@ -24,6 +23,15 @@ const routes = [
     path: "/register",
     name: "SignUp",
     component: SignUp,
+    meta: {
+      isAuth: false,
+    },
+  },
+
+  {
+    path: "/call/:group/:sockerId/",
+    name: "MakeCall",
+    component: MakeCall,
     meta: {
       isAuth: false,
     },
@@ -50,17 +58,21 @@ const routes = [
     component: ResetPassword,
     props: true,
   },
-  {
-    path:"/board",
-    name:"TeamBoard",
-    component:TeamBoard
-  },
+
   {
     path: "/user",
     name: "UserView",
     component: UserView,
     meta: {
       isAuth: true,
+    },
+  },
+  {
+    path: "/task/:id",
+    name: "Task",
+    component: Task,
+    meta: {
+      isAuth: false,
     },
   },
   {
@@ -86,4 +98,3 @@ const router = createRouter({
 // });
 
 export default router;
-

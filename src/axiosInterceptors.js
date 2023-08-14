@@ -4,7 +4,7 @@ import axios from "axios";
 import "vue3-toastify/dist/index.css";
 
 const axiosInstance = axios.create({
-  baseURL: "http://localhost:4000/api/v1/",
+  baseURL: "https://team-collaboration-api.onrender.com/api/v1/",
 });
 
 // axiosInstance.interceptors.response.use(

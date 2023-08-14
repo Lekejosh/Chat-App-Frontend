@@ -141,7 +141,9 @@ const updateProfile = async () => {
         status.value = status.value
         toast.success("Profile Updated Successfully")
     }).catch((error) => {
-        console.log(error)
+        if (error.response.status === 409) {
+            toast.error("Username Already Taken")
+        }
     })
 }
 
