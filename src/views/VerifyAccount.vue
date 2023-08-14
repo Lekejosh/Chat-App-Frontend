@@ -123,7 +123,7 @@ export default {
           mailOtp: mailOtp.value,
         });
         toast.success("Account Verified Successfully");
-        router.push({ name: "Login" });
+        router.push({ name: "UserView" });
       } catch (err) {
         toast.error(err.message);
       }
